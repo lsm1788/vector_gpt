@@ -1,0 +1,319 @@
+<?php
+//문의 관련한 모델파일
+class inquiry
+{
+	/**
+	 * 창업문의 로그등록
+	 * @param Int  $inquiry_idx 창업문의 PK
+	 * @param Array $data 등록 데이터 배열
+	 * @param Array $processData 처리단에서 전달받은 데이터 배열
+	 */
+	public function log_inquiryActionLog($inquiry_idx, $data=array(), $processData=array())
+	{
+		global $_SERVER, $cls_db;
+
+		// 로그 데이터 추출
+		$cls_db->get_log_data();
+
+		$sql = "INSERT INTO `inquiry_action_log` SET";
+		$sql .= " `inquiry_idx`=".$inquiry_idx.",";
+		$sql .= " `action_result`='".$data["action_result"]."',";
+		$sql .= " `form_page_url`='".$_SERVER["HTTP_REFERER"]."',";
+		$sql .= " `action_page_url`='".$_SERVER["REQUEST_URI"]."',";
+		$sql .= " `session_data`='".$cls_db->session_data."',";
+		$sql .= " `cookie_data`='".$cls_db->cookie_data."',";
+		$sql .= " `get_data`='".$cls_db->get_data."',";
+		$sql .= " `post_data`='".$cls_db->post_data."',";
+		$sql .= " `data_array`='".json_encode($processData)."',";
+		$sql .= " `add_date`=NOW(),";
+		$sql .= " `add_id`='".$data["add_id"]."',";
+		$sql .= " `add_ip`='".$data["add_ip"]."'";
+		$res = $cls_db->sql_query($sql);
+		if($res === false)
+		{
+			$cls_db->return_text = $data["action_result"]." 로그 저장에 실패 했습니다.";
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * 파라미터 값으로 WHERE 조건문 생성
+	 * @param Array $param 검색 데이터 배열
+	 */
+	private function get_subSql($param=array())
+	{
+		$subsql = " WHERE 1=1";
+		if(isset($param["s_idx"])) $subsql .= " AND `idx`=".$param["s_idx"];
+		if(isset($param["s_username"])) $subsql .= " AND `username`='".$param["s_username"]."'";
+		if(isset($param["s_hp"])) $subsql .= " AND `hp`='".$param["s_hp"]."'";
+		if(isset($param["s_email"])) $subsql .= " AND `email`='".$param["s_email"]."'";
+		if(isset($param["s_joinType"])) $subsql .= " AND `join_type`='".$param["s_joinType"]."'";
+		if(isset($param["s_hopeArea"])) $subsql .= " AND `hope_area`='".$param["s_hopeArea"]."'";
+		if(isset($param["s_startupsDate"])) $subsql .= " AND `startups_date`='".$param["s_startupsDate"]."'";
+		if(isset($param["s_estimatedCost"])) $subsql .= " AND `estimated_cost`=".$param["s_estimatedCost"];
+		if(isset($param["s_ownershipFlag"])) $subsql .= " AND `ownership_flag`='".$param["s_ownershipFlag"]."'";
+		if(isset($param["s_comment"])) $subsql .= " AND `comment`='".$param["s_comment"]."'";
+		if(isset($param["s_answerFlag"])) $subsql .= " AND `answer_flag`='".$param["s_answerFlag"]."'";
+		if(isset($param["s_answer"])) $subsql .= " AND `answer`='".$param["s_answer"]."'";
+		if(isset($param["s_answerDate"])) $subsql .= " AND `answer_date`='".$param["s_answerDate"]."'";
+		if(isset($param["s_addIp"])) $subsql .= " AND `add_ip`='".$param["s_addIp"]."'";
+		if(isset($param["s_addDate"])) $subsql .= " AND `add_date`='".$param["s_addDate"]."'";
+		if(isset($param["s_editIp"])) $subsql .= " AND `edit_ip`='".$param["s_editIp"]."'";
+		if(isset($param["s_editDate"])) $subsql .= " AND `edit_date`='".$param["s_editDate"]."'";
+
+		if(isset($param["s_username_like"])) $subsql .= " AND `username` LIKE '%".$param["s_username_like"]."%'";
+		if(isset($param["s_email_like"])) $subsql .= " AND `email` LIKE '%".$param["s_email_like"]."%'";
+		return $subsql;
+	}
+
+	/**
+	 * 창업문의 목록
+	 * @param Int $ 페이지 번호
+	 * @param Int $list_max 페이지당 출력할 게시물 수
+	 * @param Array $param 검색 데이터 배열
+	 * @param String $field 불러올 컬럼
+	 */
+	public function get_pList_inquiry($paging, $list_max, $param=array(), $field="*")
+	{
+		global $cls_db;
+
+		$subsql = $this->get_subSql($param);
+
+		$cnt = $cls_db->sql_fetch("SELECT IF(COUNT(*)>0, COUNT(*), 0) AS `cnt` FROM `inquiry`".$subsql);
+		$cls_db->total = $cnt["cnt"];
+
+		$paging_start = ($paging - 1) * $list_max;
+		$cls_db->rownum = $cls_db->total - $paging_start;
+
+		if(!empty($param["orderby"]))
+		{
+			$orderby = " ORDER BY ".$param["orderby"];
+		}
+		else
+		{
+			$orderby = " ORDER BY `add_date` DESC";
+		}
+
+		return $cls_db->sql_fetch_array("SELECT ".$field." FROM `inquiry`".$subsql.$orderby." LIMIT ".$paging_start.", ".$list_max);
+	}
+
+	/**
+	 * 창업문의 목록
+	 * @param Array $param 검색 데이터 배열
+	 * @param String $field 불러올 컬럼
+	 */
+	public function get_list_inquiry($param=array(), $field="*")
+	{
+		global $cls_db;
+
+		$subsql = $this->get_subSql($param);
+
+		if(!empty($param["orderby"]))
+		{
+			$orderby = " ORDER BY ".$param["orderby"];
+		}
+		else
+		{
+			$orderby = " ORDER BY `add_date` DESC";
+		}
+
+		return $cls_db->sql_fetch_array("SELECT ".$field." FROM `inquiry`".$subsql.$orderby);
+	}
+
+	/**
+	 * 창업문의 상세
+	 * @param Int $inquiry_idx 창업문의 PK
+	 * @param String $field 불러올 컬럼
+	 */
+
+
+	public function get_view_inquiry($inquiry_idx, $field="*")
+	{
+		global $cls_db;
+		//SELECT * FROM `inquiry` WHERE `idx`=53
+		return $cls_db->sql_fetch("SELECT ".$field." FROM `inquiry` WHERE `idx`=".$inquiry_idx);
+	}
+
+	/**
+	 * 창업문의 상세
+	 * @param Array $param 검색 데이터 배열
+	 * @param String $field 불러올 컬럼
+	 */
+	public function get_view_inquiry_search($param=array(), $field="*")
+	{
+		global $cls_db;
+
+		$subsql = $this->get_subSql($param);
+
+		if(!empty($param["orderby"]))
+		{
+			$orderby = " ORDER BY ".$param["orderby"];
+		}
+		else
+		{
+			$orderby = " ORDER BY `idx` ASC";
+		}
+
+		return $cls_db->sql_fetch("SELECT ".$field." FROM `inquiry`".$subsql.$orderby." LIMIT 1");
+	}
+
+	/**
+	 * 창업문의 등록
+	 * @param Array $data 등록 데이터 배열
+	 */
+	public function add_inquiry($data=array())
+	{
+		global $cls_db;
+		try
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_startTransaction();
+
+			$sql = "INSERT INTO `inquiry` SET";
+			if(isset($data["username"])) $sql .= " `username`='".$data["username"]."',";
+			if(isset($data["hp"])) $sql .= " `hp`='".$data["hp"]."',";
+			if(isset($data["email"])) $sql .= " `email`='".$data["email"]."',";
+			if(isset($data["join_type"])) $sql .= " `join_type`='".$data["join_type"]."',";
+			if(isset($data["hope_area"])) $sql .= " `hope_area`='".$data["hope_area"]."',";
+			if(isset($data["startups_date"])) $sql .= " `startups_date`='".$data["startups_date"]."',";
+			if(isset($data["estimated_cost"])) $sql .= " `estimated_cost`=".$data["estimated_cost"].",";
+			if(isset($data["ownership_flag"])) $sql .= " `ownership_flag`='".$data["ownership_flag"]."',";
+			if(isset($data["comment"])) $sql .= " `comment`='".$data["comment"]."',";
+			if(isset($data["answer_flag"])) $sql .= " `answer_flag`='".$data["answer_flag"]."',";
+			if(isset($data["answer"])) $sql .= " `answer`='".$data["answer"]."',";
+			if(isset($data["answer_date"])) $sql .= " `answer_date`='".$data["answer_date"]."',";
+			if(isset($data["add_ip"])) $sql .= " `add_ip`='".$data["add_ip"]."',";
+			$sql .= " `add_date`=NOW()";
+			$res = $cls_db->sql_query($sql);
+			if($res === false)
+			{
+				throw new Exception("창업문의 등록에 실패 했습니다.");
+			}
+
+			$cls_db->latest_idx = mysqli_insert_id($cls_db->connect);
+
+			$res = $this->log_inquiryActionLog($cls_db->getLatestIdx(), array(
+				"action_result"=>"창업문의 등록",
+				"add_id"=>$data["add_id"],
+				"add_ip"=>$data["add_ip"]
+			), $data);
+			if($res === false)
+			{
+				throw new Exception($cls_db->getReturnText());
+			}
+
+			if($data["transaction_flag"]===true) $cls_db->do_commit();
+		}
+		catch(Exception $e)
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_rollback();
+
+			$cls_db->return_text = $e->getMessage();
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * 창업문의 수정
+	 * @param Int $inquiry_idx 창업문의 PK
+	 * @param Array $data 수정 데이터 배열
+	 */
+	public function edit_inquiry($inquiry_idx, $data=array())
+	{
+		global $cls_db;
+
+		try
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_startTransaction();
+
+			$sql = "UPDATE `inquiry` SET";
+			if(isset($data["username"])) $sql .= " `username`='".$data["username"]."',";
+			if(isset($data["hp"])) $sql .= " `hp`='".$data["hp"]."',";
+			if(isset($data["email"])) $sql .= " `email`='".$data["email"]."',";
+			if(isset($data["join_type"])) $sql .= " `join_type`='".$data["join_type"]."',";
+			if(isset($data["hope_area"])) $sql .= " `hope_area`='".$data["hope_area"]."',";
+			if(isset($data["startups_date"])) $sql .= " `startups_date`='".$data["startups_date"]."',";
+			if(isset($data["estimated_cost"])) $sql .= " `estimated_cost`=".$data["estimated_cost"].",";
+			if(isset($data["ownership_flag"])) $sql .= " `ownership_flag`='".$data["ownership_flag"]."',";
+			if(isset($data["comment"])) $sql .= " `comment`='".$data["comment"]."',";
+			if(isset($data["answer_flag"])) $sql .= " `answer_flag`='".$data["answer_flag"]."',";
+			if(isset($data["answer"])) $sql .= " `answer`='".$data["answer"]."',";
+			if(isset($data["answer_date"])) $sql .= " `answer_date`= NOW(),";
+			if(isset($data["edit_ip"])) $sql .= " `edit_ip`='".$data["edit_ip"]."',";
+			$sql .= " `edit_date`=NOW()";
+			$sql .= " WHERE `idx`=".$inquiry_idx;
+			$res = $cls_db->sql_query($sql);
+			if($res === false)
+			{
+				throw new Exception("창업문의 수정에 실패 했습니다.");
+			}
+
+			$res = $this->log_inquiryActionLog($inquiry_idx, array(
+				"action_result"=>"창업문의 수정",
+				"add_id"=>$data["edit_id"],
+				"add_ip"=>$data["edit_ip"]
+			), $data);
+			if($res === false)
+			{
+				throw new Exception($cls_db->getReturnText());
+			}
+
+			if($data["transaction_flag"]===true) $cls_db->do_commit();
+		}
+		catch(Exception $e)
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_rollback();
+
+			$cls_db->return_text = $e->getMessage();
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * 창업문의 삭제
+	 * @param Int $inquiry_idx 창업문의 PK
+	 * @param Array $data 삭제 데이터 배열
+	 */
+	public function del_inquiry($inquiry_idx, $data=array())
+	{
+		global $cls_db;
+
+		try
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_startTransaction();
+
+			$res = $cls_db->sql_query("DELETE FROM `inquiry` WHERE `idx`=".$inquiry_idx);
+			if($res === false)
+			{
+				throw new Exception("창업문의 삭제에 실패 했습니다.");
+			}
+
+			$res = $this->log_inquiryActionLog($inquiry_idx, array(
+				"action_result"=>"창업문의 삭제",
+				"add_id"=>$data["del_id"],
+				"add_ip"=>$data["del_ip"]
+			), $data);
+			if($res === false)
+			{
+				throw new Exception($cls_db->getReturnText());
+			}
+
+			if($data["transaction_flag"]===true) $cls_db->do_commit();
+		}
+		catch(Exception $e)
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_rollback();
+
+			$cls_db->return_text = $e->getMessage();
+			return false;
+		}
+
+		return true;
+	}
+}
+?>

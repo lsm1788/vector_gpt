@@ -1,0 +1,133 @@
+/**
+ * 사용자 페이지의 css관련, 모션관련된 스크립트 전역함수
+ */
+
+$(document).ready(function() {
+    $( window ).scroll( function() {
+        if ( $( this ).scrollTop() > 100 ) {
+            $('#goTop').fadeIn('fast');
+            $('header').addClass('scroll');
+        } else {
+            $('#goTop').fadeOut('fast');
+            $('header').removeClass('scroll');
+        }
+    });
+
+    $('#goTop').click(function(){
+        $('html,body').animate({ scrollTop: 0 }, 'fast');
+    });
+
+    $('.language button').click(function(){
+        $('.language').toggleClass('on');
+        $('.language .list').slideToggle('fast');
+    });
+
+    $('.close-allmenu').click(function(){
+        $('.allmenu').fadeOut('fast');
+    });
+
+    toggle_box();
+
+    var windowsize = $(window).width();
+    if (windowsize < 1280) {
+        mobileGnb ();
+    } else{
+        pcGnb ();
+    }
+
+    $(window).resize(function() {
+        if(Modernizr.mq('screen and (max-width:1280px)')) {
+            mobileGnb ()
+        }else{
+            pcGnb ();
+        }
+    });
+
+
+    function pcGnb (){
+        $( ".pc-menu" ).off();
+        $( ".pc-navi" ).off();
+        $( ".m-navi" ).off();
+        $('body').removeClass('on');
+        $('.toggle-menu').addClass('pc-navi');
+        $('.toggle-menu').removeClass('m-navi');
+        $('.gnb').addClass('pc-menu');
+        $('.gnb').removeClass('m-menu');
+        $('header').removeClass('active');
+
+        $( ".pc-menu" )
+            .mouseenter(function() {
+                $('header').addClass('active');
+                $('.dropdown').stop().slideDown('fast');
+                $('.gnb-bg').stop().slideDown('fast');
+            })
+            .mouseleave(function() {
+                $('header').removeClass('active');
+                $('.dropdown').stop().slideUp('fast');
+                $('.gnb-bg').stop().slideUp('fast');
+            });
+
+        $('.pc-navi').click(function(){
+            $('.allmenu').fadeIn('fast');
+        });
+        $('.close-allmenu').click(function(){
+            $('.allmenu').fadeOut('fast');
+        });
+    }
+
+    function mobileGnb (){
+        $('.pc-navi').off();
+        $('.m-navi').off();
+        $( ".pc-menu" ).off();
+        $('.m-menu ul li  > a').off();
+        $('.toggle-menu').removeClass('pc-navi');
+        $('.toggle-menu').addClass('m-navi');
+        $('.gnb').removeClass('pc-menu');
+        $('.gnb').addClass('m-menu');
+        $('header').removeClass('active');
+
+        $('.m-navi').click(function(){
+            $('.m-menu').addClass('active');
+            $('body').addClass('on');
+        });
+        $('.gnb-close').click(function(){
+            $('.m-menu').removeClass('active');
+            $('body').removeClass('on');
+        });
+
+        $('.m-menu ul li  > a').click( function(e){
+            // console.log($('.mobile ul li > .level1'));
+            e.preventDefault();
+            function slideDown(target) {
+                slideUp();
+                $(target).addClass('on').next('.dropdown').stop().slideDown('fast');
+            }
+            function slideUp() {
+                $('.m-menu ul li  > a').removeClass('on').next('.dropdown').slideUp('fast');
+            }
+            $(this).hasClass('on') ? slideUp() : slideDown(this);
+        });
+
+        var navWidth = 0;
+        $('.level3 .layout a').each(function(index) {
+            navWidth += parseInt($(this).width());
+        });
+        $('.level3 .layout').css("width", navWidth);
+
+    }
+
+});
+
+function toggle_box()
+{
+    $('.toggle-box2 dt').off("click").on('click', function() {
+        function slideDown(target) {
+            slideUp();
+            $(target).addClass('on').next('dd').slideDown('fast');
+        }
+        function slideUp() {
+            $('.toggle-box2 dt').removeClass('on').next('dd').slideUp('fast');
+        }
+        $(this).hasClass('on') ? slideUp() : slideDown(this);
+    });
+}

@@ -1,0 +1,1894 @@
+<?php
+/**
+* 프로젝트내에 쓰이는 php전역함수 모음
+*/
+
+
+/**
+ * 암호화
+ * @param String $String 암호화 할 문자열
+ * @return String $return_string 암호화 된 문자열
+ */
+function passLock($String)
+{
+	global $suffix, $chunk_value, $original_value, $passis, $convert_value;
+
+	$return_string = "";
+	for($i=0; $i<strlen($String); $i++)
+	{
+		$return_string = $return_string.base_convert(($passis - ord(substr($String, $i, 1))), $original_value, $convert_value);
+	}
+	$return_string = strrev($return_string);
+
+	return $return_string;
+	exit;
+}
+
+/**
+ * 복호화
+ * @param String $String 복호화 할 문자열
+ * @return String $out_string 복호화 된 문자열
+ */
+function passUnlock($String)
+{
+	global $suffix, $chunk_value, $original_value, $passis, $convert_value;
+
+	$string_value = strlen(base_convert(($passis - ord(substr($String, 0, 1))), $original_value, $convert_value));
+	$return_string = strrev($String);
+	$return_string = chunk_split($return_string, $string_value, $suffix);
+	$arrstringtemp = explode($suffix, $return_string);
+	array_pop($arrstringtemp);
+	$out_string = "";
+	for($i=0; $i<sizeof($arrstringtemp); $i++)
+	{
+		$out_string = $out_string.chr(($passis - (base_convert($arrstringtemp[$i], $convert_value, $original_value))));
+	}
+
+	return $out_string;
+}
+
+/**
+ * SMS발송
+ * @param String $from_num 발신자 연락처
+ * @param String $to_num 수신자 연락처
+ * @param String $msg 문자 내용
+ * @param boolean $adm_flag 관리자 참조 flag
+ * @return boolean 결과 값 flag
+ */
+function send_sms($from_num, $to_num, $msg, $adm_flag)
+{
+	global $cls_sms;
+
+	$sms_info = $cls_sms->get_view_sms(1, "`token_key`, `callback`, `admin_hp`");
+
+	if(empty($from_num))
+	{
+		$from_num = $sms_info["callback"];
+	}
+	$adm_hp_number = trim(str_replace("-", "", $sms_info["admin_hp"]));
+
+	$cls_sms->SMS_con("211.172.232.124", "9201", $sms_info["token_key"]);
+	$tran_date = "";//발송시간
+
+	$tran_callback = trim(str_replace("-", "", $from_num));//회신번호
+	$tran_phone = trim(str_replace("-", "", $to_num));//수신번호
+
+	$result = $cls_sms->Add(array($tran_phone), $tran_callback, $msg);
+	if($adm_flag === true)
+	{
+		$result = $cls_sms->Add(array($adm_hp_number), $tran_callback, $msg);
+	}
+	$result = $cls_sms->Send();
+
+	if($result)
+	{
+		$success = $fail = 0;
+
+		foreach ($cls_sms->Result as $result)
+		{
+			list($phone, $code) = explode(":", $result);
+			if($code == "Error")
+			{
+				$fail++;
+			}
+			else
+			{
+				$success++;
+			}
+		}
+		$cls_sms->Init();// 보관하고 있던 결과값을 지웁니다.
+
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+/**
+ * 비즈뿌리오 알림톡 발송
+ * @param String $code 템플릿 코드
+ * @param Array $data 데이터 배열
+ */
+function send_talk($code, $data=array(), $message="")
+{
+	global $cls_kakao;
+
+	$kakao_info = $cls_kakao->get_view_kakao(1, "`type`, `senderkey`, `account`, `from`");
+
+	if($kakao_info["type"] == "at")// 알림톡
+	{
+		if(empty($message) === true)
+		{
+			$kakao_template = $cls_kakao->get_view_kakaoTemplate_search(array(
+				"s_code"=>$code
+			), "`idx`, `template_code`, `content`, `button`");
+			if(count((array)$kakao_template["idx"]) == 0)
+			{
+				return false;
+			}
+
+			$content = $kakao_template["content"];
+			if(count((array)$data) > 0)
+			{
+				foreach($data as $key => $value)
+				{
+					if(in_array($key, array("hp", "message")) === false)
+					{
+						$content = str_replace("#{".$key."}", $value, $content);
+					}
+				}
+			}
+		}
+		else
+		{
+			$content = $message;
+		}
+
+		$button = json_decode($kakao_template["button"], true);
+
+		$kakao_data = array(
+			"to"=>$data["hp"],
+			"type"=>"at",
+			"refkey"=>"biz_".$code,
+			"content"=>array(
+				"at"=>array(
+					"senderkey"=>$kakao_info["senderkey"],
+					"templatecode"=>$kakao_template["template_code"],
+					"message"=>$content,
+					"button"=>count((array)$button)>0 ? $button : array()
+				)
+			),
+			"account"=>$kakao_info["account"],
+			"from"=>$kakao_info["from"]
+		);
+
+		$json_data = json_encode($kakao_data, 64);
+	}
+	else if($kakao_info["type"] == "ft")// SMS
+	{
+		$kakao_data = array(
+			"account"=>$kakao_info["account"],
+			"refkey"=>"biz_".$code,
+			"type"=>"sms",
+			"from"=>$kakao_info["from"],
+			"to"=>$data["hp"],
+			"content"=>array(
+				"sms"=>array(
+					"message"=>$data["message"]
+				)
+			)
+		);
+
+		$json_data = json_encode($kakao_data, JSON_UNESCAPED_SLASHES);
+	}
+	$url = "https://api.bizppurio.com/v2/message";
+	$oCurl = curl_init();
+	curl_setopt($oCurl, CURLOPT_URL, $url);
+	curl_setopt($oCurl, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($oCurl, CURLOPT_NOSIGNAL, 1);
+	curl_setopt($oCurl, CURLOPT_SSL_VERIFYHOST, false);
+	curl_setopt($oCurl, CURLOPT_SSL_VERIFYPEER, false);
+	curl_setopt($oCurl, CURLOPT_FOLLOWLOCATION, true);
+	curl_setopt($oCurl, CURLOPT_HTTPHEADER, array(
+		"Accept: application/json",
+		"Content-Type: application/json",
+		"Authorization: Bearer"
+	));
+	curl_setopt($oCurl, CURLOPT_VERBOSE, true);
+	curl_setopt($oCurl, CURLOPT_POSTFIELDS, $json_data);
+	curl_setopt($oCurl, CURLOPT_TIMEOUT, 3);
+	$response = curl_exec($oCurl);
+	$curl_errno = curl_errno($oCurl);
+	$curl_error = curl_error($oCurl);
+	curl_close($oCurl);
+
+	$result = json_decode($response, true);
+	if($result["code"] != 1000)
+	{
+		print_a($result);
+		return false;
+	}
+
+	return true;
+}
+
+/**
+ * curl 데이터 전송
+ * @param string $url
+ * @param string $vars 파라미터값
+ */
+function curl($url, $vars) {
+	$cu = curl_init();
+	curl_setopt($cu, CURLOPT_URL, $url);// 데이타를 보낼 URL 설정
+	curl_setopt($cu, CURLOPT_USERAGENT, "Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)");// 해당 데이타를 보낼 http head 정의 : 삭제해도 되긴함
+	curl_setopt($cu, CURLOPT_POST, true);// 데이타를 get/post 로 보낼지 설정
+	curl_setopt($cu, CURLOPT_POSTFIELDS, $vars);// 보낼 데이타를 설정 형식은 GET 방식으로 설정
+	curl_setopt($cu, CURLOPT_RETURNTRANSFER, true);// REQUEST 에 대한 결과값을 받을건지 체크
+	curl_setopt($cu, CURLOPT_TIMEOUT, 60);// REQUEST 에 대한 결과값을 받는 시간타임 설정
+
+	return curl_exec($cu);// 실행
+
+	curl_close($cu);
+}
+/** //curl 데이터 전송 */
+
+/**
+ * PHPMailer로 메일 보내기
+ * @param array $param 인자값 전달
+ * - title 제목
+ * - content 내용
+ * - content_html_file 내용을 html 파일로 대체할때 사용할 파일 절대경로
+ * - from_address 보내는 사람 메일 주소
+ * - from_name 보내는 사람 이름
+ * - to_address 받는 사람 메일 주소
+ * - to_name 받는 사람 이름
+ * - file_full_path 저장된 파일의 전체 경로와 원본 파일명
+ * - file_name 보여줄 파일명
+ */
+function send_mail($param=array())
+{
+	if(class_exists("PHPMailer") === false)
+	{
+		require CFG_BASE_PATH."/_include/PHPMailer/class.phpmailer.php";
+	}
+	$mail = new PHPMailer();
+
+	if(SMTP_FLAG == "y")
+	{
+		$mail->IsSMTP();
+		$mail->SMTPSecure = "ssl";
+		$mail->SMTPAuth = true;
+		$mail->Host = SMTP_HOST;
+		$mail->Port = 465;
+		$mail->Username = SMTP_USERID;
+		$mail->Password = SMTP_PASSWORD;
+		$mail->CharSet = "UTF-8";
+	}
+	$mail->From = $param["from_address"];
+	$mail->FromName = $param["from_name"];
+	$mail->Subject = $param["title"];
+	$mail->MsgHTML($param["content"]);
+	$mail->AddAddress($param["to_address"], $param["to_name"]);
+	//$mail->AddAttachment($param["file_full_path"], $param["file_name"]);             // attachment
+
+	if(!$mail->Send())
+	{
+		return "Mailer Error : ".$mail->ErrorInfo;
+	}
+	else
+	{
+		return true;
+	}
+}
+
+function smtp_mail($param=array())
+{
+	if(class_exists("PHPMailer") === false)
+	{
+		require CFG_BASE_PATH."/_include/PHPMailer/class.phpmailer.php";
+	}
+	$mail = new PHPMailer();
+
+	$mail->IsSMTP();
+	$mail->SMTPSecure = "ssl";
+	$mail->SMTPAuth = true;
+	$mail->Host = SMTP_HOST;
+	$mail->Port = 465;
+	$mail->Username = SMTP_USERID;
+	$mail->Password = SMTP_PASSWORD;
+	$mail->CharSet = "UTF-8";
+
+	$mail->From = $param["from_address"];
+	$mail->FromName = $param["from_name"];
+	$mail->Subject = $param["title"];
+	$mail->MsgHTML($param["content"]);
+	$mail->AddAddress($param["to_address"], $param["to_name"]);
+	$mail->AddAttachment($param["file_full_path"], $param["file_name"]);             // attachment
+
+	if(!$mail->Send())
+	{
+		return "Mailer Error : ".$mail->ErrorInfo;
+	}
+	else
+	{
+		return true;
+	}
+}
+//메일테스트용
+function test_mail($param=array())
+{
+	if(class_exists("PHPMailer") === false)
+	{
+		require CFG_BASE_PATH."/_include/PHPMailer/class.phpmailer.php";
+	}
+	$mail = new PHPMailer();
+
+	$mail->IsMail();
+	$mail->SMTPSecure = "ssl";
+	$mail->SMTPAuth = true;
+	$mail->Host = SMTP_HOST;
+	$mail->Port = 995;
+	$mail->Username = SMTP_USERID;
+	$mail->Password = SMTP_PASSWORD;
+	$mail->CharSet = "UTF-8";
+
+	$mail->From = $param["from_address"];
+	$mail->FromName = $param["from_name"];
+	$mail->Subject = $param["title"];
+	$mail->MsgHTML($param["content"]);
+	$mail->AddAddress($param["to_address"], $param["to_name"]);
+	$mail->AddAttachment($param["file_full_path"], $param["file_name"]);             // attachment
+
+	if(!$mail->Send())
+	{
+		return "Mailer Error : ".$mail->ErrorInfo;
+	}
+	else
+	{
+		return true;
+	}
+}
+/**
+ * 에러 메세지 불러오기
+ */
+function get_msg($msg_code)
+{
+	global $_COOKIE, $pwmsg;
+
+	$this_site_language = "kor";
+	if(!empty($_COOKIE["this_site_language"]))
+	{
+		$this_site_language = $_COOKIE["this_site_language"];
+	}
+
+	if(!@array_key_exists($msg_code, $pwmsg))
+	{
+		$msg_text = $msg_code;
+	}
+	else
+	{
+		$msg_text = $pwmsg[$msg_code][$this_site_language];
+	}
+
+	return $msg_text;
+}
+
+/**
+ * proc페이지에서 오류 출력
+ * @param String $msg 오류 내용
+ */
+function proc_error($msg_code)
+{
+	global $url;
+
+	if($url != "ajax")
+	{
+		alertnBack(get_msg($msg_code));
+	}
+	else
+	{
+		die(get_msg($msg_code));
+	}
+}
+
+/**
+ * proc페이지에서 완료 출력
+ * @param String $msg 오류 내용
+ * @param url $where 완료 후 이동 할 페이지 url
+ */
+function proc_complete($msg_code, $where="")
+{
+	global $url;
+
+	if($url != "ajax")
+	{
+		if(empty($msg_code))
+		{
+			Go($where);
+		}
+		else
+		{
+			alertnGo(get_msg($msg_code), $where);
+		}
+	}
+	else
+	{
+		die(get_msg($msg_code));
+	}
+}
+
+/**
+ * proc페이지에서 JSON 오류 출력
+ * @param String $msg_code 오류 코드(내용)
+ */
+function proc_error_json($msg_code, $result_code="FAILED")
+{
+	die(json_encode(array(
+		"result_code"=>$result_code,
+		"msg"=>get_msg($msg_code)
+	), JSON_UNESCAPED_UNICODE));
+}
+
+/**
+ * proc페이지에서 JSON 완료 출력
+ * @param String $msg_code 메세지 코드(내용)
+ */
+function proc_complete_json($msg_code="", $data=array(), $result_code="SUCCESS")
+{
+	die(json_encode(array(
+		"result_code"=>$result_code,
+		"data"=>$data,
+		"msg"=>get_msg($msg_code)
+	), JSON_UNESCAPED_UNICODE));
+}
+
+/**
+ * 파라미터 값이 잘 못 넘어왔을 때 오류출력
+ * @param String $msg 오류내용 또는 코드
+ * @param String $where 이동 할 페이지 url
+ * @param Array $script 오류내용 출력 후 script 이벤트 배열
+ */
+function page_move($msg="", $where="", $script=array())
+{
+	$echoHTML = "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=".DEFAULT_CHARSET."\">\n";
+	$echoHTML .= "<script>\n";
+	if(!empty($msg))
+	{
+		$echoHTML .= "alert(\"".get_msg($msg)."\");\n";
+	}
+	if(!empty($where))
+	{
+		if($where != "doNotMove")
+		{
+			$echoHTML .= "document.location.href = \"".$where."\";\n";
+		}
+	}
+	else
+	{
+		$echoHTML .= "history.go(-1);\n";
+	}
+	if(count((array)$script) > 0)
+	{
+		for($i=0; $i<count($script); $i++)
+		{
+			$echoHTML .= $script[$i]."\n";
+		}
+	}
+	$echoHTML .= "</script>\n";
+
+	echo $echoHTML;
+	exit;
+}
+
+function sql_injection_detect() {
+	global $_POST, $_GET;
+
+	// 인젝션 방어
+	//회원아이디에 걸리는 것이 있어서 from, change, and 는 뺐음
+	$injectionArr = array("union", "select",  "where", "update", "delete", "clear",   "insert", "exit", "!=",  "between", "script", "%27", "truncate", "reboot", "exec","function", "concat", "distinct", "column_name", "information_schema", "where", "null");
+
+	foreach($_POST as $key => $value)
+	{
+		for($i=0; $i<count((array)$injectionArr); $i++)
+		{
+			if(is_array($value))
+			{
+				foreach($value as $key2 => $value2)
+				{
+					$value_small = strtolower($value2);
+
+					if(strpos((string)$value_small, $injectionArr[$i] ) !== false)
+					{
+						echo "<h1>Injection Word detect!</h1>";
+						exit;
+					}
+				}
+			}
+			else
+			{
+				$value_small = strtolower($value);
+
+				if(strpos((string)$value_small, $injectionArr[$i] ) !== false)
+				{
+					echo "<h1>Injection Word detect!</h1>";
+					exit;
+				}
+			}
+		}
+	}
+
+	foreach($_GET as $key => $value)
+	{
+		foreach($injectionArr as $word)
+		{
+			if(is_array($value))
+			{
+				foreach($value as $key2 => $value2)
+				{
+					$value_small = strtolower($value2);
+
+					if(strpos((string)$value_small, $word ) !== false)
+					{
+						echo "<h1>Injection Word detect!</h1>";
+						exit;
+					}
+				}
+			}
+			else
+			{
+				$value_small = strtolower($value);
+
+				if(strpos((string)$value_small, $word ) !== false)
+				{
+					echo "<h1>Injection Word detect!</h1>";
+					exit;
+				}
+			}
+		}
+	}
+}
+
+// 로그인 여부 체크
+function isLogin()
+{
+	global $_SESSION;
+
+	if(empty($_SESSION["ss_user_idx"]))
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	}
+}
+
+//이미지 출력
+function get_image($src, $width, $height, $text="NO IMAGE")
+{
+	$imgHTML = "";
+	if(file_exists($src) && is_file($src))
+	{
+		$filepath = str_replace($_SERVER["DOCUMENT_ROOT"], "", $src);
+		list($src_width, $src_height, $src_type, $src_attr) = getImagesize($src);
+		if($width > $height)//출력할 이미지가 가로형일때
+		{
+			if($src_width > $src_height)
+			{
+				$imgHTML .= "<img src=\"".$filepath."\" style=\"height: 100%;\" data-size=\"".$src_width."/".$src_height."\" />";
+			}
+			else
+			{
+				$imgHTML .= "<img src=\"".$filepath."\" style=\"width: 100%;\" data-size=\"".$src_width."/".$src_height."\" />";
+			}
+		}
+		else//출력할 이미지가 정사각형형 또는 세로형일때
+		{
+			if($src_width <= $src_height)
+			{
+				$imgHTML .= "<img src=\"".$filepath."\" style=\"width: 100%;\" data-size=\"".$src_width."/".$src_height."\" />";
+			}
+			else
+			{
+				$imgHTML .= "<img src=\"".$filepath."\" style=\"height: 100%;\" data-size=\"".$src_width."/".$src_height."\" />";
+			}
+		}
+	}
+	else
+	{
+		$imgHTML .= "<img src=\"".get_noImage($width, $height, $text="NO IMAGE")."\" style=\"width: 100%;\" />";
+	}
+	$returnHTML = "<div style=\"margin: 0 auto; width: ".$width."px; height: ".$height."px; overflow: hidden;\">";
+	$returnHTML .= $imgHTML;
+	$returnHTML .= "</div>\n";
+
+	return $returnHTML;
+}
+
+//NO IMAGE
+function get_noImage($width, $height, $text="NO IMAGE")
+{
+	if($_SERVER["HTTP_X_FORWARDED_PROTO"] == "https")
+	{
+		$url = "https://via.placeholder.com";
+	}
+	else
+	{
+		$url = "http://via.placeholder.com";
+	}
+
+	return $url."/".$width."x".$height."?text=".$text;
+}
+
+/**
+ * 셀렉트폼 생성
+ * @param string $name 폼 이름
+ * @param array $data
+ * @param string $style 스타일(class='' style='')
+ * @param string $selected 선택값
+ * @param boolean $blank 옵션 최상단 선택(???을 선택해 주세요.)
+ */
+function make_select_form($name, $data, $style, $selected, $blank=false, $check="선택")
+{
+	$rtn = "";
+	$rtn .= "<select name=\"".$name."\"".$style.">";
+	if($blank === true)
+	{
+		$rtn .= "<option value=\"\">".$check."</option>";
+	}
+	if(count((array)$data) > 0)
+	{
+		foreach($data as $key => $value)
+		{
+			$rtn .= "<option value=\"".$key."\"".($key==$selected ? " selected" : "").">".$value."</option>";
+		}
+	}
+	$rtn .= "</select>";
+
+	return $rtn;
+}
+
+function make_checkbox_form($name, $data, $style, $checked, $blank=false, $check="전체")
+{
+	$rtn = "";
+	if(count((array)$data) > 0)
+	{
+		if($blank === true)
+		{
+			$rtn .= "
+			<span class=\"checkbox\">
+				<input type=\"checkbox\" name=\"".$name."[]\" id=\"".$name."_\" value=\"\" />
+				<label for=\"".$name."_\" style=\"text-indent: inherit; width: 200px; padding-left: 25px; display: inline-block; top: 7px; margin-left: 10px;".$style."\">".$check."</label>
+			</span>
+			";
+		}
+		foreach($data as $key => $value)
+		{
+			$rtn .= "
+			<span class=\"checkbox\">
+				<input type=\"checkbox\" name=\"".$name."[]\" id=\"".$name."_".$key."\" value=\"".$key."\"".(in_array($key, (array)$checked) ? " checked" : "")." />
+				<label for=\"".$name."_".$key."\" style=\"text-indent: inherit; width: 200px; padding-left: 25px; display: inline-block; top: 7px; margin-left: 10px;".$style."\">".$value."</label>
+			</span>
+			";
+		}
+	}
+
+	return $rtn;
+}
+
+/**
+ * 난수 생성
+ * @param int $length 난수의 자릿수
+ */
+function make_random_code($length, $mode="")
+{
+	switch($mode)
+	{
+		case "password": $key = "1234567890abcdefghijklmnopqrstuvwxyz!@#$%^&*"; break; // 비밀번호
+		case "certify": $key = "ABCDEFGHKLNOPQRSTUXYZ123456789"; break; // 저장할 파일명, 주문번호
+		case "number": $key = "0123456789"; break; // 인증코드
+		case "english": $key = "abcdefghijklmnopqrstuvwxyz"; break; //영문
+		case "special": $key = "!@#$%^&*"; break; //특수문자
+	}
+
+	$token = "";
+	for($i=0; $i<strLen($key); $i++)
+	{
+		$token .= $key[rand(0, strLen($key))];
+
+		if(strLen($token) >= $length)
+		{
+			break;
+		}
+		else
+		{
+			continue;
+		}
+	}
+
+	return $token;
+}
+
+/**
+ * 파일명에서 확장자 추출
+ * @param string $filename 파일명
+ */
+function _file_ext($filename)
+{
+	$filename = trim($filename);
+	preg_match('/\.([0-9a-zA-Z]{1,4})$/i', $filename, $result);
+	if($result[1] != "")
+	{
+		return strtolower($result[1]);
+	}
+}
+
+/**
+ * 파일 업로드
+ * @param String $path 파일이 저장될 절대경로
+ * @param String $column 첨부파일 컬럼명
+ * @return String $saved_filename 저장된 파일명
+ */
+function file_upload($path, $column)
+{
+	global $_FILES;
+
+	$response = "";
+	if($_FILES[$column]["size"] > 0)
+	{
+		//첨부파일을 저장 할 폴더가 있는지 체크하고 없으면 만든다.
+		if(is_dir($path) === false)
+		{
+			make_folder($path);
+		}
+
+		$upload_ext = strtolower(_file_ext($_FILES[$column]["name"]));
+		$upload_name = make_random_code(20, "certify").".".$upload_ext;
+		if(file_exists($path.$upload_name) === false)
+		{
+			if(move_uploaded_file($_FILES[$column]["tmp_name"], $path.$upload_name) === true)
+			{
+				$response = $upload_name;
+			}
+		}
+	}
+
+	return $response;
+}
+
+/**
+ * SQL문 생성
+ * @param String $mode 모드 값
+ * @param String $table_name 테이블명
+ * @param Array $data 배열
+ * @log 2020.08.01 기본 함수 생성 esh
+ */
+function make_query($mode, $table_name, $param=array(), $data=array()) {
+	$data_sql = "";
+	$param_sql = " WHERE 1=1";
+
+	if(count((array)$param) > 0)
+	{
+		foreach($param as $key => $value)
+		{
+			$param_mode = substr($key, 0, strpos($key, "_"));
+			$colunm = substr($key, strpos($key, "_")+1);
+
+			$param_sql .= " AND `".$colunm."`";
+			switch($param_mode)
+			{
+				case "selEQ":
+					(in_array(gettype($value), array("integer", "double"))) ? $param_sql .= "=".$value : $param_sql .= "='".$value."'";
+					break;
+
+				case "selNEQ":
+					(in_array(gettype($value), array("integer", "double"))) ? $param_sql .= "<>".$value : $param_sql .= "!='".$value."'";
+					break;
+
+				case "selLIKE":
+					$param_sql .= " LIKE '%".$value."%'";
+					break;
+
+				case "selIN":
+					$param_sql .= " IN ('".implode("','", json_decode($value))."')";
+					break;
+
+				case "selNOTIN":
+					$param_sql .= " NOT IN ('".implode("','", json_decode($value))."')";
+					break;
+
+				case "selLT":
+					(in_array(gettype($value), array("integer", "double"))) ? $param_sql .= ">".$value : $param_sql .= ">'".$value."'";
+					break;
+
+				case "selGT":
+					(in_array(gettype($value), array("integer", "double"))) ? $param_sql .= "<".$value : $param_sql .= "<'".$value."'";
+					break;
+
+				case "selLE":
+					(in_array(gettype($value), array("integer", "double"))) ? $param_sql .= "<=".$value : $param_sql .= "<='".$value."'";
+					break;
+
+				case "selGE":
+					(in_array(gettype($value), array("integer", "double"))) ? $param_sql .= ">=".$value : $param_sql .= ">='".$value."'";
+					break;
+			}
+		}
+	}
+
+	if(count((array)$data) > 0)
+	{
+		foreach($data as $key => $value)
+		{
+			if(!empty($data_sql))
+			{
+				$data_sql .= ",";
+			}
+
+			$data_sql .= " `".$key."`=".((in_array(gettype($value), array("integer", "double"))) ? $value : "'".$value."'");
+		}
+	}
+
+	switch($mode)
+	{
+		case "pList":
+			$sql = "SELECT ".$data["field"]." FROM `".$table_name."`".$param_sql;
+			break;
+
+		case "list":
+			$sql = "SELECT ".$data["field"]." FROM `".$table_name."`".$param_sql;
+			break;
+
+		case "view":
+			$sql = "SELECT ".$data["field"]." FROM `".$table_name."`".$param_sql;
+			break;
+
+		case "count":
+			$sql = "SELECT IF(COUNT(*)>0, COUNT(*), 0) AS `cnt` FROM `".$table_name."`".$param_sql;
+			break;
+
+		case "del":
+			$sql = "DELETE FROM `".$table_name."`".$param_sql;
+			break;
+
+		case "add":
+			$sql = "INSERT INTO `".$table_name."` SET".$data_sql;
+			break;
+
+		case "edit":
+			$sql = "UPDATE `".$table_name."` SET".$data_sql.$param_sql;
+			break;
+	}
+
+	return $sql;
+}
+
+//전화번호,핸드폰번호 하이픈(-) 추가
+function add_hyphen($tel)
+{
+	$tel = preg_replace("/[^0-9]*/s","",$tel); //숫자이외 제거
+
+	if (substr($tel,0,2) =='02' ) {
+		return preg_replace("/([0-9]{2})([0-9]{3,4})([0-9]{4})$/","\\1-\\2-\\3", $tel);
+	}else if(substr($tel,0,2) =='8' && substr($tel,0,2) =='15' || substr($tel,0,2) =='16'||  substr($tel,0,2) =='18'  ){
+		return preg_replace("/([0-9]{4})([0-9]{4})$/","\\1-\\2",$tel);
+	//지능망 번호이면
+	}else
+		return preg_replace("/([0-9]{3})([0-9]{3,4})([0-9]{4})$/","\\1-\\2-\\3" ,$tel);
+	//핸드폰번호만 이용한다면 이것만잇어도됨
+}
+
+// utf8문자열을 배열로 만든다.
+function php_fn_utf8_to_array($str)
+{
+	$re_arr = array();
+	$re_icount = 0;
+	for ($i=0, $m=strlen($str); $i<$m; $i++)
+	{
+		$ch = ord($str{$i});
+		if ($ch < 128)
+			$re_arr[$re_icount++] = substr($str, $i, 1);
+		else if ($ch < 224)
+		{
+			$re_arr[$re_icount++] = substr($str, $i, 2);
+			$i += 1;
+		}
+		else if ($ch < 240)
+		{
+			$re_arr[$re_icount++] = substr($str, $i, 3);
+			$i += 2;
+		}
+		else if ($ch < 248)
+		{
+			$re_arr[$re_icount++] = substr($str, $i, 4);
+			$i += 3;
+		}
+	}
+
+	return $re_arr;
+}
+
+// utf8문자열을 잘라낸다.
+function php_fn_utf8_substr($str, $start, $length=NULL)
+{
+	return implode("", array_slice(php_fn_utf8_to_array($str), $start, $length));
+}
+
+// utf8문자열의 길이를 구한다.
+function php_fn_utf8_strlen($str)
+{
+	return count((array)php_fn_utf8_to_array($str));
+}
+
+function cut_string($str, $maxlen, $tail="..")
+{
+	$len = php_fn_utf8_strlen($str);
+
+	if ($len<= $maxlen || !$maxlen)
+		return $str;
+
+	$str = php_fn_utf8_substr($str, 0, $maxlen + php_fn_utf8_strlen($tail));
+
+	return $str .= $tail;
+}
+
+/**
+ * 빈 공백 문자열 삭제
+ * @param string $str 문자열
+ */
+function _blank_del($str)
+{
+	return str_replace(" ", "", $str);
+}
+
+/**
+ * 텍스트에서 금칙어 골라내서 처리
+ * @param string $str 원본 텍스트
+ * @param string $word 금칙어(구분자 쉼표(,))
+ * @param string $replace 금칙어 발견시 바꿀말
+ */
+function replace_str($str, $word, $replace="*")
+{
+	$w_arr = @explode(",", $word);
+
+	if (count((array)$w_arr) > 0)
+	{
+		for ($i=0; $i<count((array)$w_arr); $i++)
+		{
+			$this_replace_word = "";
+			for ($j=0; $j<strLen($w_arr[$i]); $j++)
+			{
+				$this_replace_word .= $replace;
+			}
+
+			$str = str_replace($w_arr[$i], $this_replace_word, $str);
+		}
+	}
+
+	return $str;
+}
+
+/**
+ * 이미지 업로드시 썸네일 생성
+ * @param String $file 임시파일
+ * @param string $save_filename 저장될 파일명
+ * @param string $save_path 저장 경로
+ * @param int $max_width 생성할 가로 사이즈
+ * @param int $max_height 생성할 세로 사이즈
+ * 출처 : http://liyoucat.com/100177672563
+ */
+function thumnail($file="", $save_filename, $save_path, $max_width, $max_height)
+{
+// 전송받은 이미지 정보를 받는다
+	$img_info = getImageSize($file);
+
+// 전송받은 이미지의 포맷값 얻기 (gif, jpg png)
+	if ($img_info[2] == 1)
+		$src_img = ImageCreateFromGif($file);
+	else if ($img_info[2] == 2)
+		$src_img = ImageCreateFromJPEG($file);
+	else if ($img_info[2] == 3)
+		$src_img = ImageCreateFromPNG($file);
+	else
+		return 0;
+
+// 전송받은 이미지의 실제 사이즈 값얻기
+	$img_width = $img_info[0];
+	$img_height = $img_info[1];
+
+	if ($max_width == 0)
+	{
+		if ($max_height < $img_height)
+		{
+			$dst_width = $img_width / $img_height * $max_height;
+			$dst_height = $max_height;
+		}
+		else
+		{
+			$dst_width = $img_width;
+			$dst_height = $img_height;
+		}
+	}
+	else if ($max_height == 0)
+	{
+		if ($max_width < $img_width)
+		{
+			$dst_width = $max_width;
+			$dst_height = $img_height / $img_width * $max_width;
+		}
+		else
+		{
+			$dst_width = $img_width;
+			$dst_height = $img_height;
+		}
+	}
+	else
+	{
+//원본과 썸네일의 가로세로비율이 같은경우
+		if ($max_width > 0 && $max_height > 0)
+		{
+			$dst_width = $max_width;
+			$dst_height = $max_height;
+		}
+//세로에 기준을 둔경우
+		else if (($img_width / $max_width) < ($img_height / $max_height))
+		{
+			$dst_width = $max_height * ($img_width / $img_height);
+			$dst_height = $max_height;
+		}
+//가로에 기준을 둔경우
+		else
+		{
+			$dst_width = $max_width;
+			$dst_height = $max_width * ($img_height / $img_width);
+		}//그림사이즈를 비교해 원하는 썸네일 크기이하로 가로세로 크기를 설정합니다.
+	}
+
+// 새로운 트루타입 이미지를 생성
+	$dst_img = imagecreatetruecolor($dst_width, $dst_height);
+
+// R255, G255, B255 값의 색상 인덱스를 만든다
+	ImageColorAllocate($dst_img, 255, 255, 255);
+
+// 이미지를 비율별로 만든후 새로운 이미지 생성
+	if ($max_width == 0 || $max_height == 0)
+		ImageCopyResampled($dst_img, $src_img, 0, 0, 0, 0, $dst_width, $dst_height, $img_info[0], $img_info[1]);
+	else
+	{
+		if (($img_width/$max_width) == ($img_height/$max_height))
+			ImageCopyResampled($dst_img, $src_img, 0, 0, 0, 0, $dst_width, $dst_height, ImageSX($src_img),ImageSY($src_img));
+//세로기준
+		else if (($img_width / $max_width) < ($img_height / $max_height))
+		{
+			$setSpaceTopToWidth = ceil(($max_width - $dst_width) / 2);
+			ImageCopyResampled($dst_img, $src_img, $setSpaceTopToWidth, 0, 0, 0, $dst_width, $dst_height, ImageSX($src_img),ImageSY($src_img));
+		}
+//가로기준
+		else
+		{
+			$setSpaceTopToHeight = ceil(($max_height - $dst_height) / 2);
+			ImageCopyResampled($dst_img, $src_img, 0, $setSpaceTopToHeight, 0, 0, $dst_width, $dst_height, ImageSX($src_img),ImageSY($src_img));
+		}
+	}
+
+// 알맞는 포맷으로 저장
+	if ($img_info[2] == 1)
+	{
+		ImageInterlace($dst_img);
+		ImageGif($dst_img, $save_path.$save_filename);
+	}
+	else if ($img_info[2] == 2)
+	{
+		ImageInterlace($dst_img);
+		ImageJPEG($dst_img, $save_path.$save_filename);
+	}
+	else if ($img_info[2] == 3)
+		ImagePNG($dst_img, $save_path.$save_filename);
+
+// 임시 이미지 삭제
+	ImageDestroy($dst_img);
+	ImageDestroy($src_img);
+}
+
+/**
+ * 회원의 등급을 가져와서 해당 페이지의 권한 체크
+ * @param string $grade 해당 페이지를 볼수 있는 권한
+ */
+	function check_permission($grade)
+	{
+		global $_SESSION;
+
+		if (!empty($_SESSION["ss_user_id"]))
+		{
+			if (in_array($grade, array("member", "guest")))
+				return true;
+		}
+		else
+		{
+			if ($grade == "guest")
+				return true;
+			else
+				return false;
+		}
+	}
+
+
+// 파일 용량
+	function Change_Size_Unit($size)
+	{
+		$FileSizeUnit = array("Bytes", "Kb", "Mb", "Gb", "Tb", "Pb", "Eb", "Zb", "Yb");
+		return round($size/pow(1024, ($i = floor(log($size, 1024)))), 1)." ".$FileSizeUnit[$i];
+	}
+
+//모바일 체크
+function isMobile() {
+	$mAgent = array("iPhone", "iPod", "Android", "Blackberry", "Opera Mini", "Windows ce", "Nokia", "sony", "lgtelecom", "skt", "mobile", "samsung", "phone");
+
+	$chkMobile = false;
+	for($i=0; $i<count((array)$mAgent); $i++) {
+		if(stripos($_SERVER["HTTP_USER_AGENT"], $mAgent[$i])) {
+			$chkMobile = true;
+			break;
+		}
+	}
+
+	return $chkMobile;
+}
+
+/**
+ * 배열의 값들을 출력한다. 디버깅용
+ */
+	function print_a($array)
+	{
+		echo "<pre>";
+		print_r($array);
+		echo "</pre>";
+	}
+
+	function get_yymm($format="Ym") {
+		if(date("j") > 25) {
+			$yymm = date($format,  strtotime(date("Y-m-01", time())."+1 months"));
+		} else {
+			$yymm = date($format);
+		}
+
+		return $yymm;
+	}
+
+# 페이지 이동 함수
+/**
+ * 에러메세지 출력 후 url 페이지로 이동
+ * @param string $msg 에러메세지
+ * @param string $url
+ */
+	function alertnGo($msg, $url)
+	{
+		echo "
+<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">
+<script type='text/javascript'>
+alert('".get_msg($msg)."');
+document.location.href = '".$url."';
+</script>
+		";
+		exit;
+	}
+
+/**
+ * 에러메세지 출력 후 이전 페이지로 이동
+ * @param string $msg 에러메세지
+ */
+	function alertnBack($msg)
+	{
+		echo "
+<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">
+<script type='text/javascript'>
+alert('".get_msg($msg)."');
+history.back();
+</script>
+		";
+		exit;
+	}
+
+/**
+ * 에러메세지 출력 후 현제창 닫고 부모창 리로드
+ * @param string $msg 에러메세지
+ */
+	function ErrorMsgnCloseReplace($msg)
+	{
+		echo "
+<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">
+<script type='text/javascript'>
+window.alert('".get_msg($msg)."');
+window.close();
+opener.location.reload();
+</script>
+		";
+		exit;
+	}
+
+
+	/**
+	 * 에러메세지 출력 후 현재창 닫기
+	 * @param string $msg 에러메세지
+	 */
+		function ErrorMsgnClose($msg)
+		{
+			echo "
+	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">
+	<script type='text/javascript'>
+	window.alert('".get_msg($msg)."');
+	window.close();
+	</script>
+			";
+			exit;
+		}
+
+
+/**
+ * 에러메세지 출력 후 현제창 닫고 부모창 이동
+ * @param string $msg 에러메세지
+ * @param string $url
+ */
+	function ErrorMsgnCloseGo($msg, $url)
+	{
+		echo "
+<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">
+<script type='text/javascript'>
+window.alert('".get_msg($msg)."');
+window.close();
+opener.location.href = ".$url.";
+</script>
+		";
+		exit;
+	}
+
+/**
+ * 페이지 이동
+ * @param string $url
+ */
+	function Go($url)
+	{
+		echo "<meta http-equiv='Refresh' content='0; url=".$url."'>";
+		exit;
+	}
+
+/**
+ * 페이지로 이동(iframe용)
+ * @param string $url
+ */
+	function GoFrame($url)
+	{
+		echo "
+<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">
+<script>
+parent.document.location.href = \"".$url."\";
+</script>
+		";
+		exit;
+	}
+
+/**
+ * 에러메세지 출력 후 현제 레이어 닫기
+ * @param string $msg 에러메세지
+ */
+	function ErrorMsgnCloseLayer($msg)
+	{
+		echo "
+<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">
+<script type='text/javascript'>
+parent.close_layer_popup_after_alert('".get_msg($msg)."');
+</script>
+		";
+		exit;
+	}
+
+/**
+ * 에러메세지 출력 후 현제 레이어 닫고 부모창 리로드
+ * @param string $msg 에러메세지
+ */
+	function ErrorMsgnCloseLayerReplace($msg)
+	{
+		echo "
+<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">
+<script type='text/javascript'>
+parent.close_layer_popup_after_alert('".get_msg($msg)."');
+parent.location.reload()
+</script>
+		";
+		exit;
+	}
+
+	function Error($msg)
+	{
+		echo "
+<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">
+<script type='text/javascript'>
+alert('".get_msg($msg)."');
+</script>
+		";
+	}
+
+/**
+ * 고유한 쇼핑몰 아이디 생성
+ */
+	if (!function_exists("check_rand_shop_id_if_not_make"))
+	{
+		function check_rand_shop_id_if_not_make($shop_id_name, $site_name)
+		{
+			global $_COOKIE;
+
+			if (!$_COOKIE["$shop_id_name"])
+			{
+				$rand_id = md5(uniqid(rand()));
+				SetCookie("$shop_id_name",$rand_id,0,"/", $site_name);
+
+				//echo"$shop_id_name",$rand_id,0,"/","$site_name";
+			}
+		}
+	}
+
+/**
+ * 페이지로 이동(iframe용)
+ * @param string $url
+ */
+	function alertnGoFrame($msg, $url)
+	{
+		echo "
+<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">
+<script>
+alert(\"".get_msg($msg)."\");
+parent.document.location.href = \"".$url."\";
+</script>
+		";
+		exit;
+	}
+
+/**
+ * 페이지로 이동(iframe용)
+ * @param string $url
+ */
+	function alertnBackFrame($msg)
+	{
+		echo "
+<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">
+<script>
+alert(\"".get_msg($msg)."\");
+parent.history.go(-1);
+</script>
+		";
+		exit;
+	}
+
+	/**
+	 * 페이지로 이동(iframe용)
+	 * @param string $url
+	 */
+	function alertnGoReplaceFrame($msg) {
+		echo "
+<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">
+<script>
+alert(\"".get_msg($msg)."\");
+parent.document.location.reload();
+document.location.href = \"/blank.php\";
+</script>
+		";
+		exit;
+	}
+
+/**
+ * 주문상태 코드를 받아서 텍스트로 변환
+ * @param String $order_progress 주문상태('tmp', 'ready', 'pay', 'delivery', 'cancel', 'exchange', 'done')
+ * @param String $order_progress_state 주문 진행상태('none', 'ready', 'ongoing', 'done')
+ * @return array $return_array 텍스트형 주문상태(progress), 주문 진행상태(progress_state)
+ */
+function convert_order_progress($order_progress, $order_progress_state="") {
+	$return_array = array();
+
+	switch($order_progress) {
+		case "tmp" : $return_array = array("progress" => "임시주문", "progress_state" => ""); break;
+		case "ready" : $return_array = array("progress" => "입금대기", "progress_state" => ""); break;
+		case "pay" : $return_array = array("progress" => "결제완료", "progress_state" => ""); break;
+		case "delivery" :
+			$return_array["progress"] = "배송";
+
+			switch($order_progress_state) {
+				case "none" : $return_array["progress_state"] = ""; break;
+				case "ready" : $return_array["progress_state"] = "배송 준비중"; break;
+				case "ongoing" : $return_array["progress_state"] = "배송중"; break;
+				case "done" : $return_array["progress_state"] = "배송완료"; break;
+			}
+			break;
+
+		case "cancel" :
+			$return_array["progress"] = "취소";
+
+			switch($order_progress_state) {
+				case "none" : $return_array["progress_state"] = ""; break;
+				case "ready" : $return_array["progress_state"] = "취소 요청중"; break;
+				case "ongoing" : $return_array["progress_state"] = "취소 처리중"; break;
+				case "done" : $return_array["progress_state"] = "취소완료"; break;
+			}
+			break;
+
+		case "exchange" :
+			$return_array["progress"] = "교환";
+
+			switch($order_progress_state) {
+				case "none" : $return_array["progress_state"] = ""; break;
+				case "ready" : $return_array["progress_state"] = "교환 요청중"; break;
+				case "ongoing" : $return_array["progress_state"] = "교환 처리중"; break;
+				case "done" : $return_array["progress_state"] = "교환완료"; break;
+			}
+			break;
+
+		case "done" : $return_array = array("progress" => "완료", "progress_state" => ""); break;
+	}
+
+	return $return_array;
+}
+
+
+/**
+ * 에디터 내용에서 이미지 경로를 찾아서 정해진 경로로 이동시킨다.
+ * 이동 후 에디터 내용을 변경하고 리턴한다.
+ */
+function edit_contentIMGPath($content, $find_path, $replae_path)
+{
+	$pattern = "/<img[^>]*src=[\'\"]?([^>\'\"]+[^>\'\"]+)[\'\"]?[^>]*>/i";
+
+	preg_match_all($pattern, $content, $matchs);
+	if(count((array)$matchs[1]) > 0)
+	{
+		for($i=0; $i<count($matchs[1]); $i++)
+		{
+			$p = parse_url($matchs[1][$i]);
+
+			if(strpos($p["path"], $find_path) > -1)
+			{
+				$oldPath = CFG_BASE_PATH.$p["path"];
+				$newPath = str_replace($find_path, $replae_path, $oldPath);
+
+				if(file_exists(CFG_BASE_PATH.$p["path"]) !== true)
+				{
+					//return "실제 경로에 파일이 없습니다.";
+					return false;
+				}
+
+				if(!is_dir(CFG_BASE_PATH.$replae_path))
+				{
+					mkdir(CFG_BASE_PATH.$replae_path);
+					chmod(CFG_BASE_PATH.$replae_path, 0755);
+				}
+
+				if(copy($oldPath, $newPath) === false)
+				{
+					//return "파일 복사에 실패 했습니다.";
+					return false;
+				}
+				// else
+				// {
+				// 	@unlink($oldPath);
+				// }
+
+				$content = str_replace($find_path, $replae_path, $content);
+			}
+		}
+
+		//파일을 모두 옮겼다면 에디터 폴더 삭제
+		// @rmdir(CFG_BASE_PATH.$find_path);
+	}
+
+	return $content;
+}
+//2020년 5월 26일 오전 10:26분
+function change_date_format($date_str)
+{
+	$date1 = date("Y년 n월 j일", strtotime($date_str));
+	$date2 = date("a", strtotime($date_str))=="am" ? "오전" : "오후";
+	$date3 = date("H:i분", strtotime($date_str));
+
+	return $date1." ".$date2." ".$date3;
+}
+
+function chkLoginPWD($pw)
+{
+	$num = preg_match('/[0-9]/u', $pw);
+	$eng = preg_match('/[a-z]/u', $pw);
+	$spe = preg_match('/[\~\!\@\#\$\%\^\&\*\(\)\\-\=\_\+\|\,\.]/u', $pw);
+	if(strlen($pw) < 6 || strlen($pw) > 16)
+	{
+		return get_msg("6자 이상 15자 이내로 입력해주세요.");
+	}
+
+	if(preg_match('/\s/u', $pw) == true)
+	{
+		return "비밀번호는 공백없이 입력해 주세요.";
+	}
+
+	if(($num == 0 && $eng == 0) || ($num == 0 && $spe == 0) || ($eng == 0 && $spe == 0))
+	{
+		return get_msg("영문, 숫자, 특수문자를 2가지이상 조합해주세요.");
+	}
+
+	return "SUCCESS";
+}
+
+function viewSQ($textToFilter)
+{
+	$textToFilter = str_replace('&amp;',"&",$textToFilter);
+	$textToFilter = str_replace('&#59',";",$textToFilter);
+	$textToFilter = str_replace('&gt;',">",$textToFilter);
+	$textToFilter = str_replace('&lt;',"<",$textToFilter);
+	$textToFilter = str_replace("&#39","'",$textToFilter);
+	$textToFilter = str_replace('&#34',"\"",$textToFilter);
+	$textToFilter = str_replace('&amp;',"&",$textToFilter);
+	$textToFilter = str_replace('&#101',"e",$textToFilter);
+	return $textToFilter;
+}
+
+function get_discount_rate($grade)
+{
+	switch($grade)
+	{
+		case "6": $rate = 5; break;
+		case "7": $rate = 2; break;
+		case "8": $rate = 1; break;
+		default: $rate = 0; break;
+	}
+
+	return $rate;
+}
+
+function get_save_rate($grade)
+{
+	switch($grade)
+	{
+		case "6": $rate = 5; break;
+		case "7": $rate = 3; break;
+		case "8": $rate = 2; break;
+		case "9": $rate = 1; break;
+		default: $rate = 0; break;
+	}
+
+	return $rate;
+}
+
+function get_member_level_discount_price($price)
+{
+	global $_SESSION;
+
+	return round($price * (get_discount_rate($_SESSION["ss_user_grade"]) / 100));
+}
+
+function re_key($array)
+{
+	$i = 0;
+	foreach($array as $key=>$val)
+	{
+		unset($array[$key]);
+		$new_key = $i;
+		$array[$new_key] = $val;
+		$i++;
+	}
+	return $array;
+}
+
+function get_member_level_save_price($price)
+{
+	global $_SESSION;
+
+	return round($price * (get_save_rate($_SESSION["ss_user_grade"]) / 100));
+}
+
+function unlink_directory($abs_path)
+{
+	if($openDir = opendir($abs_path))
+	{
+		while($readDir = @readdir($openDir))
+		{
+			if($readDir != "." && $readDir != "..")
+			{
+				if(is_dir($abs_path."/".$readDir))
+				{
+					$dirs[] = $abs_path."/".$readDir;
+				}
+				else
+				{
+					$files[] = $abs_path."/".$readDir;
+				}
+			}
+		}
+	}
+
+	if(count((array)$files))
+	{
+		for($i=0; $i<count($files); $i++)
+		{
+			if(unlink($files[$i]) !== true)
+			{
+				return false;
+			}
+		}
+	}
+
+	if(count((array)$dirs))
+	{
+		$dirs = array_reverse($dirs);
+		for($i=0; $i<count($dirs); $i++)
+		{
+			if(rmdir($dirs[$i]) !== true)
+			{
+				return false;
+			}
+		}
+	}
+
+	if(rmdir($abs_path) !== true)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+//이미지 출력
+function get_image_only_mngr($src, $width, $height, $text="NO IMAGE")
+{
+	$imgHTML = "";
+	if(file_exists($src) && is_file($src))
+	{
+		$filepath = str_replace($_SERVER["DOCUMENT_ROOT"], "", $src);
+		list($src_width, $src_height, $src_type, $src_attr) = getImagesize($src);
+		if($width > $height)//출력할 이미지가 가로형일때
+		{
+			if($src_width > $src_height)
+			{
+				$imgHTML .= "<img src=\"".$filepath."\" style=\"height: 100%;\" data-size=\"".$src_width."/".$src_height."\" />";
+			}
+			else
+			{
+				$imgHTML .= "<img src=\"".$filepath."\" style=\"width: 100%;\" data-size=\"".$src_width."/".$src_height."\" />";
+			}
+		}
+		else//출력할 이미지가 정사각형형 또는 세로형일때
+		{
+			if($src_width <= $src_height)
+			{
+				$imgHTML .= "<img src=\"".$filepath."\" style=\"width: 100%;\" data-size=\"".$src_width."/".$src_height."\" />";
+			}
+			else
+			{
+				$imgHTML .= "<img src=\"".$filepath."\" style=\"height: 100%;\" data-size=\"".$src_width."/".$src_height."\" />";
+			}
+		}
+	}
+	else
+	{
+		$imgHTML .= "<img src=\"".get_noImage($width, $height, "NO IMAGE")."\" style=\"width: 100%;\" />";
+	}
+	$returnHTML = "<div style=\"margin: 0 auto; width: ".$width."px; height: ".$height."px; overflow: hidden;\">";
+	$returnHTML .= $imgHTML;
+	$returnHTML .= "</div>\n";
+
+	return $returnHTML;
+}
+/*
+ * 이메일 형식 체크
+ * */
+function email_chk($email)
+{
+	$check_email=preg_match("/^[_\.0-9a-zA-Z-]+@([0-9a-zA-Z][0-9a-zA-Z-]+\.)+[a-zA-Z]{2,6}$/i", $email);
+
+	if($check_email==true)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+
+function set_parameter($param1="", $param2="")
+{
+	if(strpos($param1, "?") > -1)
+	{
+		return $param1.$param2;
+	}
+	else
+	{
+		if(empty($param1))
+		{
+			if(empty($param2))
+			{
+				return "";
+			}
+			else
+			{
+				return "?".substr($param2, 1);
+			}
+		}
+		else
+		{
+			return "?".substr($param1, 1).$param2;
+		}
+	}
+}
+
+function make_folder($abs_path)
+{
+	$exp = explode("/", $abs_path);
+	if(count((array)$exp) > 0)
+	{
+		$path = "/";
+		for($i=0; $i<count($exp); $i++)
+		{
+			if(empty($exp[$i]) === false)
+			{
+				$path .= $exp[$i]."/";
+
+				if(is_dir($path) === false)
+				{
+					mkdir($path, 0755);
+				}
+			}
+		}
+	}
+}
+
+function add_connect()
+{
+	global $_SERVER, $_SESSION, $cls_db;
+
+	$url_array = parse_url($_SERVER["HTTP_REFERER"]);
+	if($url_array["host"] != DEFAULT_URL)
+	{
+		if(class_exists("connect") === false)
+		{
+			require CFG_MODEL_PATH_ABS."/class.connect.php";
+		}
+		$cls_connect = new connect();
+
+		if(class_exists("UserAgent") === false)
+		{
+			require CFG_MODEL_PATH_ABS."/class.user_agent.php";
+		}
+		$cls_UserAgent = new UserAgent();
+
+		$my_brz = getenv("HTTP_USER_AGENT");
+		$my_ref = getenv("HTTP_REFERER");
+		$my_ref = str_replace(array("http://", "https://", "www."), "", $my_ref);
+		$search_word = explode("?", $my_ref);
+		$search_word[1] = urldecode($search_word[1]);
+		$key_word = explode("&", $search_word[1]);
+		$key = array();
+		if(count((array)$key_word) > 0)
+		{
+			for($i=0; $i<count($key_word); $i++)
+			{
+				if(preg_match("/^p=/", $key_word[$i])) $key = explode("=", $key_word[$i]);
+				if(preg_match("/^q=/", $key_word[$i])) $key = explode("=", $key_word[$i]);
+				if(preg_match("/^query=/", $key_word[$i])) $key = explode("=", $key_word[$i]);
+				if(preg_match("/^keyword=/", $key_word[$i])) $key = explode("=", $key_word[$i]);
+			}
+		}
+
+		$br_info = $cls_UserAgent->detect($my_brz);
+
+		$res = $cls_connect->add_connect(array(
+			"agent"=>$my_brz,
+			"referer"=>$_SERVER["HTTP_REFERER"],
+			"site"=>$url_array["host"],
+			"search_word"=>$key[1],
+			"con_date"=>date("Y-m-d"),
+			"con_hour"=>date("H"),
+			"browser"=>$br_info["browser"]["name"]."|". $br_info["browser"]["version"],
+			"platform"=>$br_info["platform"]["name"]."|".$br_info["platform"]["version"],
+			"system"=>$br_info["system"]["name"]."|".$br_info["system"]["version"],
+			"engine"=>$br_info["engine"]["name"]."|".$br_info["engine"]["version"],
+			"net_ver"=>$br_info["net_ver"]["name"]."|".$br_info["net_ver"]["version"],
+			"wrapper"=>$br_info["wrapper"]["name"]."|".$br_info["wrapper"]["version"],
+			"bot"=>$br_info["bot"],
+			"this_page"=>$_SERVER["REQUEST_URI"],
+			"country"=>$_SERVER["HTTP_HOSTING_COUNTRY_CODE"]."|".$_SERVER["HTTP_HOSTING_CONTINENT_CODE"],
+			"add_id"=>$_SESSION["ss_user_id"],
+			"add_ip"=>$_SERVER["REMOTE_ADDR"],
+			"transaction_flag"=>true
+		));
+		if($res === true)
+		{
+			setcookie("connect_log_idx", mysqli_insert_id($cls_db->connect), "0", "/", COOKIE_DOMAIN);
+		}
+	}
+}
+
+function htmls($input) {
+	return htmlspecialchars($input, ENT_QUOTES);
+}
+
+function thumbnail($src_file, $width, $height) {
+    // 원본 이미지 크기 확인
+    list($orig_width, $orig_height, $type) = getimagesize($src_file);
+
+    // 이미지 타입에 맞는 이미지 생성
+    switch ($type) {
+        case IMAGETYPE_JPEG:
+            $src_image = imagecreatefromjpeg($src_file);
+            break;
+        case IMAGETYPE_PNG:
+            $src_image = imagecreatefrompng($src_file);
+            break;
+        case IMAGETYPE_GIF:
+            $src_image = imagecreatefromgif($src_file);
+            break;
+        default:
+            return false;  // 지원되지 않는 형식
+    }
+
+    // 원본 이미지 비율을 유지하면서 썸네일 크기 계산
+    $ratio = $orig_width / $orig_height;
+
+    if ($width / $height > $ratio) {
+        $width = $height * $ratio;
+    } else {
+        $height = $width / $ratio;
+    }
+
+    // 파일 경로와 확장자 추출
+    $pathinfo = pathinfo($src_file);
+    $dir = $pathinfo['dirname'];  // 원본 파일의 디렉토리 경로
+    $ext = $pathinfo['extension'];  // 원본 파일의 확장자
+    $filename = $pathinfo['filename'];  // 원본 파일의 이름
+
+    // 썸네일 파일 경로 생성 (파일명 앞에 'thumb-' 추가)
+    $dst_file = $dir . DIRECTORY_SEPARATOR . 'thumb-' . $filename . '.' . $ext;
+
+    // 이미 썸네일 파일이 존재하는지 확인
+    if (file_exists($dst_file)) {
+        // 썸네일 파일이 이미 존재하면 생성하지 않고 경로만 반환
+		// 경로 정리: $_SERVER['DOCUMENT_ROOT']부터 상대 경로 계산
+	    $document_root = realpath($_SERVER['DOCUMENT_ROOT']);  // 실제 문서 루트 경로
+	    $absolute_dst_file = realpath($dst_file);  // 절대 경로로 변환
+
+	    // 상대 경로 계산: 절대 경로에서 DOCUMENT_ROOT 부분을 제거
+	    $relative_path = str_replace($document_root, '', $absolute_dst_file);
+
+	    return $relative_path;  // 상대 경로 반환
+    }
+
+    // 리사이징된 크기대로 썸네일 이미지 생성
+    $thumb_image = imagecreatetruecolor($width, $height);
+
+    // 이미지를 리사이즈하여 썸네일로 생성
+    imagecopyresampled($thumb_image, $src_image, 0, 0, 0, 0, $width, $height, $orig_width, $orig_height);
+
+    // 썸네일 이미지 저장
+    switch ($type) {
+        case IMAGETYPE_JPEG:
+            imagejpeg($thumb_image, $dst_file, 90);  // JPEG로 저장
+            break;
+        case IMAGETYPE_PNG:
+            imagepng($thumb_image, $dst_file);  // PNG로 저장
+            break;
+        case IMAGETYPE_GIF:
+            imagegif($thumb_image, $dst_file);  // GIF로 저장
+            break;
+    }
+
+    // 메모리 해제
+    imagedestroy($src_image);
+    imagedestroy($thumb_image);
+
+	// 경로 정리: $_SERVER['DOCUMENT_ROOT']부터 상대 경로 계산
+    $document_root = realpath($_SERVER['DOCUMENT_ROOT']);  // 실제 문서 루트 경로
+    $absolute_dst_file = realpath($dst_file);  // 절대 경로로 변환
+
+    // 상대 경로 계산: 절대 경로에서 DOCUMENT_ROOT 부분을 제거
+    $relative_path = str_replace($document_root, '', $absolute_dst_file);
+
+    return $relative_path;  // 상대 경로 반환
+}
+?>

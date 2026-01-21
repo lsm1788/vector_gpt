@@ -1,0 +1,189 @@
+<!-- 창업문의 view페이지 템플릿.ver1 -->
+<div id="pages">
+	<?php require CFG_PUBLIC_PATH_ABS. '/include/sub.top'.CFG_DESIGN_TYPE.'.php'; ?>
+	<div class="contents">
+		<!-- s::CONTENTS -->
+		<div class="foundation-guide">
+			<div class="layout flex">
+				<?php require CFG_PUBLIC_PATH_ABS. '/include/snb.php'; ?>
+				<div class="sub-container">
+					<h1 class="page-title">창업문의</h1>
+					<div class="inquiry">
+						<div class="top-box">
+							<h3><em class="color-red">전문컨설턴트</em>가 신속하게 연락드리도록 하겠습니다.</h3>
+							<p>
+								<strong>온라인 문의</strong>를 이용하시면 빠르게 답변을 받아볼 수 있습니다. (답변 : 오전9시 ~ 오후 5시 / 주말, 공휴일 제외)
+							</p>
+							<ul>
+								<li>접수된 이메일로 답변이 전송됩니다.</li>
+							</ul>
+						</div>
+						<form name="frm" action="/<?php echo $folder; ?>/proc" method="post">
+							<input type="hidden" name="mode" value="add">
+							<div class="form-box">
+								<h4>문의하기</h4>
+								<dl  class="dl-type1">
+									<dt><em class="required">*</em> 성함</dt>
+									<dd>
+										<input type="text" name="username" placeholder="성함을 입력하세요.">
+									</dd>
+									<dt><em class="required">*</em> 연락처</dt>
+									<dd>
+										<input type="tel" name="hp" placeholder="- 를 제외한 번호만 입력하세요." class="onlyNumber">
+									</dd>
+									<dt><em class="required">*</em> 이메일</dt>
+									<dd>
+										<input type="text" name="email" placeholder="이메일을 입력하세요.">
+									</dd>
+									<dt><em class="required">*</em> 가맹형태</dt>
+									<dd>
+										<?php echo make_select_form("join_type", $join_type, "", "", true, "선택")?>
+									</dd>
+									<dt><em class="required">*</em> 창업희망지역</dt>
+									<dd>
+										<input type="text" name="hope_area" placeholder="지역을 입력하세요.">
+									</dd>
+									<dt>창업예정시기</dt>
+									<dd>
+										<input type="date" name="startups_date" placeholder="예정시기를 입력하세요.">
+									</dd>
+									<dt>예상창업비용</dt>
+									<dd>
+										<input type="text" name="estimated_cost" placeholder="예상 창업비용을 입력하세요." class="onlyNumber">
+									</dd>
+									<dt>현재점포소유</dt>
+									<dd>
+										<div class="radio-group">
+										<span class="radio-type2">
+											<input type="radio" id="radio1" name="ownership_flag" value="y">
+											<label for="radio1">있음</label>
+										</span>
+											<span class="radio-type2">
+											<input type="radio" id="radio2" name="ownership_flag" value="n">
+											<label for="radio2">없음</label>
+										</span>
+										</div>
+									</dd>
+									<dt><em class="required">*</em> 문의 내용</dt>
+									<dd>
+										<textarea name="comment"></textarea>
+									</dd>
+									<dt><em class="required">*</em> 자동등록방지</dt>
+									<dd>
+										<div class="secret-code">
+											<input type="hidden" name="code" value="<?php echo passLock(ZmDecrypt($zEncrypt))?>">
+											<span><?php echo $zCrypt_Img?></span>
+											<?php echo $zCrypt_Form?>
+										</div>
+									</dd>
+								</dl>
+								<h4>개인정보 수집안내<span class="color-red">(필수)</span></h4>
+								<div class="terms-box">
+									<div class="txt-box"><?php require CFG_PUBLIC_PATH_ABS."/include/private.php";?></div>
+									<div class="chk-box">
+									<span class="radio-type2">
+										<input type="radio" id="agree1" name="radio-gorup2">
+										<label for="agree1">동의합니다.</label>
+									</span>
+										<span class="radio-type2">
+										<input type="radio" id="agree2" name="radio-gorup2">
+										<label for="agree2">동의하지 않습니다.</label>
+									</span>
+									</div>
+								</div>
+								<div class="button-box">
+									<button type="button" class="button" onclick="check_form();">접수하기</button>
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+
+			</div>
+		</div>
+		<!-- e::CONTENTS -->
+	</div>
+</div>
+<script>
+var f = document.frm;
+
+function check_form()
+{
+	if (isBlank(f.username.value))
+	{
+		alert("이름을 입력해주세요.");
+		f.username.focus();
+		return false;
+	}
+
+	if (isBlank(f.hp.value))
+	{
+		alert("연락처를 입력해주세요.");
+		f.hp.focus();
+		return false;
+	}
+	if (isBlank(f.email.value))
+	{
+		alert("이메일을 입력해주세요.");
+		f.email.focus();
+		return false;
+	}
+	if(chkType(f.email.value, 8) == "resultFalse")
+	{
+		alert("이메일 형식을 확인해 주세요.");
+		f.email.focus();
+		return false;
+	}
+	if (isBlank(f.join_type.value))
+	{
+		alert("가맹형태를 선택해주세요.");
+		f.join_type.focus();
+		return false;
+	}
+	if (isBlank(f.hope_area.value))
+	{
+		alert("창업희망지역을 입력해주세요.");
+		f.hope_area.focus();
+		return false;
+	}
+	if (isBlank(f.startups_date.value))
+	{
+		alert("창업예정시기를 입력해주세요.");
+		f.startups_date.focus();
+		return false;
+	}
+	if (isBlank(f.estimated_cost.value))
+	{
+		alert("예상창업비용을 입력해주세요.");
+		f.estimated_cost.focus();
+		return false;
+	}
+	if ($("input[name='ownership_flag']").is(':checked') == false)
+	{
+		alert("현재점포소유를 선택해주세요.");
+		$('input:radio[name="ownership_flag"]:eq(0)').focus();
+		return false;
+	}
+	if (isBlank(f.comment.value))
+	{
+		alert("내용을 입력해주세요.");
+		f.comment.focus();
+		return false;
+	}
+	if (isBlank(f.antiSpamPw.value))
+	{
+		alert("자동등록방지코드를 입력해주세요.");
+		f.antiSpamPw.focus();
+		return false;
+	}
+	if ($("#agree1").is(":checked") == false)
+	{
+		alert("개인정보취급방침에 동의해주세요..");
+		return false;
+	}
+	else
+	{
+		f.submit();
+	}
+}
+</script>

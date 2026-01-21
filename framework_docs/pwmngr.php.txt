@@ -1,0 +1,238 @@
+<?php
+//관리자모드의 index
+//도메인/pwmngr.php 경로로 들어왔을때는 이 파일이 가장먼저 열리게된다.
+
+require $_SERVER["DOCUMENT_ROOT"]."/_library/config.php";
+require CFG_LIB_PATH."/function.php";
+require CFG_LIB_PATH."/translator.php";
+
+if($_SERVER["HTTPS"] != "on" && SITE_SSL == "https")
+{
+	header("Location: ".DEFAULT_DOMAIN.$_SERVER["REQUEST_URI"]);
+	exit;
+}
+
+require CFG_MODEL_PATH_ABS."/class.db_query.php";
+$cls_db = new db_connect();
+
+require CFG_MODEL_PATH_ABS."/class.arrays.php";
+$cls_arrays = new arrays();
+
+require CFG_MODEL_PATH_ABS."/class.site.php";
+$cls_site = new site();
+
+require CFG_MODEL_PATH_ABS."/class.menus.php";
+$cls_menus = new menus();
+
+require CFG_MODEL_PATH_ABS."/class.permission.php";
+$cls_permission = new permission();
+
+// 기본 운영정보 불러오기
+$site = $cls_site->get_view_site(1);
+
+if($site["allow_flag"] == "y")
+{
+	$allow_ips = explode("\r\n", $site["allow_ip"]);
+
+	if(in_array($_SERVER["REMOTE_ADDR"], $allow_ips) === false)
+	{
+		exit;
+	}
+}
+
+$arrays = $cls_arrays->get_list_arraysValue();
+if(count((array)$arrays["idx"]) > 0)
+{
+	// 관리자 > 운영관리 > 배열관리에 등록한 데이터를 배열로 만들어서 저장
+	for($i=0; $i < count($arrays["idx"]); $i++)
+	{
+		${$arrays["category_code"][$i]}[$arrays["key"][$i]] = $arrays["value"][$i];
+	}
+
+	// 연락처 국번 배열 - 펙스와 인터넷전화 배열을 하나로 묶는다.
+	$telephone = $faxphone + $internetphone;
+
+	// 휴대폰 + 연락처 국번 배열 - 휴대폰과 일반전화 국번 매열을 하나로 묶는다.
+	$fullphone = $handphone + $telephone;
+}
+
+// 폴더설정
+$folder = $_REQUEST["folder"]; // 폴더 코드
+// 페이지 경로상에 설정될 폴더 경로
+if(empty($folder))
+{
+	// _controller/페이지 경로
+	$folder_path = "";
+}
+else// 폴더값이 있을 경우 상위경로와 구분을 취해 "/" 를 붙여줌
+{
+	// _controller/폴더경로/페이지경로
+	$folder_path = "/".$folder;
+}
+
+// 페이지 설정
+$page = $_REQUEST["page"]; // 페이지 코드
+if(empty($page))
+{
+	// 페이지값이 없다면 기본 index 로 설정
+	$source_path = "index";
+}
+else
+{
+	// 페이지값이 있다면 페이지값을 "_" 로 잘라서 2, 3, 4... 차 폴더 구조로 만든다.
+	$source_path = "";
+	$exp = explode("_", $page);
+	for($i=0; $i<count($exp); $i++)
+	{
+		if(empty($source_path))
+		{
+			$source_path = $exp[$i];
+		}
+		else
+		{
+			$source_path .= "/".$exp[$i];
+		}
+	}
+}
+
+if(in_array($folder.$page, array("", "loginproc", "login")) === false)
+{
+	if($_SESSION["ss_admin_id"] != "pointweb")
+	{
+		$permission = $cls_permission->get_list_permission(array(
+			"s_level"=>$_SESSION["ss_admin_grade"]
+		), "`idx`");
+		if(count((array)$permission["idx"]) == 0)
+		{
+			page_move("해당 페이지에 접근 권한이 없습니다.", $landing_page[$_SESSION["ss_admin_grade"]]);
+		}
+
+		$menuPage = $cls_menus->get_list_menuPage(array(
+			"s_folder"=>$folder,
+			"s_page_eqls"=>$page,
+			"s_boardId"=>($folder=="bbs" ? $board_id : null)
+		), "`idx`, `name`, `etc_param`");
+		$etcParam1 = array();
+		if(count((array)$menuPage["idx"]) > 0)
+		{
+			$params = explode("&", $_SERVER["QUERY_STRING"]);
+			if(count((array)$params) > 0)
+			{
+				for($i=0; $i<count($params); $i++)
+				{
+					$keys = explode("=", $params[$i]);
+					if(in_array($keys[0], array("folder", "page", "board_id")) === false)
+					{
+						array_push($etcParam1, $keys[0]);
+					}
+				}
+			}
+
+			// 검색된 url 중 가장 비슷한 것을 찾는다.
+			$match = array(
+				"idx"=>null,
+				"count"=>null
+			);
+
+			for($i=0; $i<count($menuPage["idx"]); $i++)
+			{
+				$etcParam2 = array();
+				if(empty($menuPage["etc_param"][$i]) === false)
+				{
+					$params = explode("&", $menuPage["etc_param"][$i]);
+					if(count((array)$params) > 0)
+					{
+						for($j=0; $j<count($params); $j++)
+						{
+							$keys = explode("=", $params[$j]);
+							if(in_array($keys[0], array("folder", "page", "board_id")) === false)
+							{
+								array_push($etcParam2, $keys[0]);
+							}
+						}
+					}
+				}
+
+				if(isset($match["count"]) === false || $match["count"] > array_diff($etcParam1, $etcParam2))
+				{
+					$match = array(
+						"idx"=>$menuPage["idx"][$i],
+						"count"=>array_diff($etcParam1, $etcParam2)
+					);
+				}
+			}
+
+			if(isset($match["idx"]) === true)
+			{
+				if(in_array($match["idx"], $menuPage["idx"]) === false)
+				{
+					page_move("해당 페이지에 접근 권한이 없습니다.", $landing_page[$_SESSION["ss_admin_grade"]]);
+				}
+			}
+		}
+	}
+}
+
+// 페이징 설정
+$list_max = empty($_REQUEST["list_max"]) ? 20 : $_REQUEST["list_max"];// 목록에 출력될 게시물 개수설정
+$paging_max = empty($_REQUEST["paging_max"]) ? 10 : $_REQUEST["paging_max"];// 페이징 블럭의 개수 설정
+$paging = empty($_REQUEST["paging"]) ? 1 : $_REQUEST["paging"];// 페이징 번호
+$paging_start = $paging==1 ? 0 : ($paging - 1) * $list_max;// 페이징 시 시작 row 순번 설정
+
+// 관리자 메인, 로그인 페이지만 body에 스타일 적용
+$body_style = "";
+if($folder == "" && $page == "login")
+{
+	$body_style = " style=\"padding: 0;\"";
+	require CFG_ADMIN_BASE_PATH_ABS."/_include/meta.php";
+	require CFG_ADMIN_BASE_PATH_ABS.$folder_path."/".$source_path.".php";
+}
+else
+{
+	// 관리자 세션정보가 없다면 로그인 페이지로 보낸다.
+	if(empty($_SESSION["ss_admin_id"]) === true)
+	{
+		if(in_array($folder.$page, array("", "/")) === true)
+		{
+			Go(CFG_ADMIN_BASE_FILE."?folder=&page=login");
+		}
+		else if($folder.$page != "login" && $folder.$page != "loginproc")
+		{
+			alertnGo(get_msg("require_login"), CFG_ADMIN_BASE_FILE."?folder=&page=login");
+		}
+	}
+
+	// process 페이지에서는 상/하단 파일을 불러오지 않는다.
+	$process_page_array = array(
+		"proc", "cfg_proc", // 기본, 게시판
+		"banner_proc", "setting_proc", "shop_proc", "popup_proc", "array_proc", "manager_proc", "menu_proc", "permission_proc", "kakao_proc", "kakaotpl_proc", "sms_proc", // 운영 관리
+		"info_proc", "point_proc", // 회원 관리
+		"seo_proc"
+	);
+
+	if(in_array($page, $process_page_array) === true)
+	{
+		require CFG_ADMIN_BASE_PATH_ABS.$folder_path."/".$source_path.".php";
+	}
+	else
+	{
+		// 팝업 페이지에서는 메뉴를 불러오지 않는다.
+		$popup_path_array = array("managearray_multi.add", "managemenu_multi.add", "managesms_log", "memberpoint_form", "statisticsdaily", "facilityinfo_form");
+		if(in_array($folder.$page, $popup_path_array))
+		{
+			$body_style = " style=\"min-width: inherit;\"";
+			require CFG_ADMIN_BASE_PATH_ABS."/_include/meta.php";// header 부분, meta 태그부분
+			require CFG_ADMIN_BASE_PATH_ABS.$folder_path."/".$source_path.".php";// 컨텐츠 영역
+			require CFG_ADMIN_BASE_PATH_ABS."/_include/footer.php";// footer
+		}
+		else
+		{
+			require CFG_ADMIN_BASE_PATH_ABS."/_include/meta.php";// header 부분, meta 태그부분
+			require CFG_ADMIN_BASE_PATH_ABS."/_include/top.php";// 상단 메뉴
+			require CFG_ADMIN_BASE_PATH_ABS.$folder_path."/".$source_path.".php";// 컨텐츠 영역
+			require CFG_ADMIN_BASE_PATH_ABS."/_include/bottom.php";// 하단 메뉴
+			require CFG_ADMIN_BASE_PATH_ABS."/_include/footer.php";// footer
+		}
+	}
+}
+?>

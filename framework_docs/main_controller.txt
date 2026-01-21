@@ -1,0 +1,27 @@
+<?php
+// 도메인에 들어왔을때 나오는 메인페이지의 controller
+require CFG_MODEL_PATH_ABS."/class.popup.php";
+$cls_popup = new popup();
+
+if(!class_exists("board"))
+{
+	require CFG_MODEL_PATH_ABS."/class.board.php";
+}
+$cls_board = new board();
+
+if(!class_exists("paging"))
+{
+	require CFG_MODEL_PATH_ABS."/class.paging.php";
+}
+$cls_paging = new paging();
+
+$param["s_boardId"] = "column";
+$param["orderby"] = "`write_date` DESC, `add_date` DESC";
+$board_data = $cls_board->get_pList_boardData($paging, 6, $param, "`idx`, `subject`, `content`");
+
+// 팝업 설정된 목록 불러와서 띄운다.
+require CFG_PUBLIC_PATH_ABS."/popup.php";
+require CFG_PUBLIC_PATH_ABS.$mobile_path.$middle_path."/menu_top".CFG_DESIGN_TYPE.".php";
+require CFG_VIEW_PATH_ABS.$mobile_path.$middle_path."/".$source_path.".htm";
+require CFG_PUBLIC_PATH_ABS.$mobile_path.$middle_path."/menu_bottom".CFG_DESIGN_TYPE.".php";
+?>

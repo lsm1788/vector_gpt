@@ -1,0 +1,87 @@
+<?php
+//이 프로젝트에 설정할 전역변수,설정 파일(+DB접속정보)
+
+header("Expires:Mon,26 Jul 1997 05:00:00 GMT"); // 유효기간을 과거의 날짜로 지정해서 무제한
+header("Last_Modified:".gmdate("D,d M Y H:i:s")." GMT"); // 갱신 날짜 현제로
+header("Cache-Control:no-cache, must-revalidate"); // HTTP1.1 전송규약에서 캐시에 저장되지 않도록 설정
+header("Progma:no-cache"); // HTTP1.0 에서 캐시에 저장되지 않도록 지정하는 라인
+header("Content-Type: text/html; charset=UTF-8");
+
+/**
+ * 기본설정
+ * 도메인
+ * 사이트명(한/영)
+ */
+define("SITE_SSL", "http");
+define("DEFAULT_URL", "sdhome.pointweb.kr");
+define("DEFAULT_DOMAIN", SITE_SSL."://".DEFAULT_URL);
+define("DEFAULT_EMAIL", "pointweb@daum.net");
+define("DEFAULT_SITENAME_KOR", "포인트웹 SD 홈페이지");
+define("DEFAULT_SITENAME_ENG", "POINTEWB SD HOMEPAGE");
+define("DEFAULT_CHARSET", "UTF-8");
+define("COOKIE_DOMAIN", ".".DEFAULT_URL);
+define("CURRENT_YEAR", 2022);
+
+// 세션설정
+session_set_cookie_params(0, "/", COOKIE_DOMAIN);
+ini_set("session.cookie_lifetime", 0);//세션 가비지 컬렉션(로그인 시 세션지속 시간) - 초 단위 설정
+if(SITE_SSL == "https")
+{
+	ini_set("session.cookie_secure", true);
+	ini_set("session.cookie_samesite", "None");
+}
+session_start();
+
+/**
+ * 경로 설정
+ * 기본경로
+ * 라이브러리 경로 - 기본 설정파일, 공통 함수 파일, DB커넥션 정보 파일
+ * MVC 경로 - MODEL, VIEW, CONTROLLER 경로
+ * 퍼블릭 경로 - 이미지, css, js 파일 경로
+ */
+define("CFG_BASE_PATH", $_SERVER["DOCUMENT_ROOT"]);
+define("CFG_LIB_PATH", CFG_BASE_PATH."/_library");
+define("CFG_INC_PATH", CFG_BASE_PATH."/_include");
+define("CFG_MODEL_PATH", "/_model");
+define("CFG_MODEL_PATH_ABS", CFG_BASE_PATH."/_model");
+define("CFG_VIEW_PATH", "/_view");
+define("CFG_VIEW_PATH_ABS", CFG_BASE_PATH."/_view");
+define("CFG_CONTROLLER_PATH", "/_controller");
+define("CFG_CONTROLLER_PATH_ABS", CFG_BASE_PATH."/_controller");
+define("CFG_PUBLIC_PATH", "/_public");
+define("CFG_PUBLIC_PATH_ABS", CFG_BASE_PATH."/_public");
+
+define("CFG_DESIGN_TYPE", "2"); //디자인 스킨 타입 (숫자지정)
+
+define("CFG_ADMIN_BASE_NAME", "pwmngr"); // 관리자 경로
+define("CFG_ADMIN_BASE_PATH", CFG_CONTROLLER_PATH."/".CFG_ADMIN_BASE_NAME); // 관리자 경로
+define("CFG_ADMIN_BASE_PATH_ABS", CFG_CONTROLLER_PATH_ABS."/".CFG_ADMIN_BASE_NAME); // 관리자 경로
+define("CFG_ADMIN_BASE_FILE", "/".CFG_ADMIN_BASE_NAME.".php"); // 관리자 경로
+
+// 암호화에 필요한 글로벌 변수
+$suffix = "∈";
+$chunk_value = 2;
+$original_value = 10;// 기본 진법
+$passis = 220913;// 사용자 입력키
+$convert_value = 15;// 사용자 입력 진법(2~36까지 사용 가능)
+
+/**
+ * DB 접속정보
+ */
+define("HOST_NAME", "localhost");
+define("USER_NAME", "pw_sdhome");
+define("USER_PASSWORD", "jp4901!@~");
+define("DB_NAME", "pw_sdhome");
+
+
+/**
+ * 메타정보 설정
+ */
+define("META_SITE_TITLE", DEFAULT_SITENAME_KOR);
+define("META_SITE_DESCRIPTION", "");
+define("META_SITE_KEYWORD", "");
+
+
+// 회원에게 알림을 보낼 수단
+define("NOTIFICATION_METHOD", "bizppurio");// 아이코드: icode, 비즈뿌리오: bizppurio
+?>

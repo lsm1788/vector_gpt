@@ -1,0 +1,95 @@
+<!-- 헤더파일 -->
+<!DOCTYPE html>
+<html lang="ko">
+	<head>
+		<meta charset="utf-8">
+		<title><?php echo $seoMeta["title"]; ?></title>
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=yes">
+
+		<meta name="mobile-web-app-capable" content="yes">
+		<meta name="format-detection" content="telephone=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="description" content="<?php echo $seoMeta["description"]; ?>"/>
+		<meta name="robots" content="index, follow">
+		<meta property="og:type" content="website">
+		<meta property="og:title" content="<?php echo $seoMeta["title"]; ?>">
+		<meta property="og:description" content="<?php echo $seoMeta["description"]; ?>">
+		<meta property="og:image" content="<?php echo $seoMeta["og_image"]; ?>">
+		<meta property="og:url" content="<?php echo $seoMeta["og_url"]; ?>">
+		<link rel="canonical" href="<?php echo $seoMeta["canonical"]; ?>">
+<?php
+if(empty($site["favicon_img"]) === false)
+{
+?>
+		<link rel="shortcut icon" href="<?php echo DEFAULT_DOMAIN.CFG_PUBLIC_PATH; ?>/uploadFiles/cfg/<?php echo $site["favicon_img"]; ?>" type="image/x-icon">
+<?php
+}
+?>
+
+		<link rel="apple-touch-icon" sizes="57x57" href="<?php echo DEFAULT_DOMAIN.CFG_PUBLIC_PATH; ?>/favicon/apple-icon-57x57.png?ver=<?php echo date("YmdHis") ?>">
+		<link rel="apple-touch-icon" sizes="60x60" href="<?php echo DEFAULT_DOMAIN.CFG_PUBLIC_PATH; ?>/favicon/apple-icon-60x60.png?ver=<?php echo date("YmdHis") ?>">
+		<link rel="apple-touch-icon" sizes="72x72" href="<?php echo DEFAULT_DOMAIN.CFG_PUBLIC_PATH; ?>/favicon/apple-icon-72x72.png?ver=<?php echo date("YmdHis") ?>">
+		<link rel="apple-touch-icon" sizes="76x76" href="<?php echo DEFAULT_DOMAIN.CFG_PUBLIC_PATH; ?>/favicon/apple-icon-76x76.png?ver=<?php echo date("YmdHis") ?>">
+		<link rel="apple-touch-icon" sizes="114x114" href="<?php echo DEFAULT_DOMAIN.CFG_PUBLIC_PATH; ?>/favicon/apple-icon-114x114.png?ver=<?php echo date("YmdHis") ?>">
+		<link rel="apple-touch-icon" sizes="120x120" href="/apple-icon-120x120.png?ver=<?php echo date("YmdHis") ?>">
+		<link rel="apple-touch-icon" sizes="144x144" href="<?php echo DEFAULT_DOMAIN.CFG_PUBLIC_PATH; ?>/favicon/apple-icon-144x144.png?ver=<?php echo date("YmdHis") ?>">
+		<link rel="apple-touch-icon" sizes="152x152" href="<?php echo DEFAULT_DOMAIN.CFG_PUBLIC_PATH; ?>/favicon/apple-icon-152x152.png?ver=<?php echo date("YmdHis") ?>">
+		<link rel="apple-touch-icon" sizes="180x180" href="<?php echo DEFAULT_DOMAIN.CFG_PUBLIC_PATH; ?>/favicon/apple-icon-180x180.png?ver=<?php echo date("YmdHis") ?>">
+		<link rel="icon" type="image/png" sizes="192x192"  href="<?php echo DEFAULT_DOMAIN.CFG_PUBLIC_PATH; ?>/favicon/android-icon-192x192.png?ver=<?php echo date("YmdHis") ?>">
+		<link rel="icon" type="image/png" sizes="32x32" href="<?php echo DEFAULT_DOMAIN.CFG_PUBLIC_PATH; ?>/favicon/favicon-32x32.png?ver=<?php echo date("YmdHis") ?>">
+		<link rel="icon" type="image/png" sizes="96x96" href="<?php echo DEFAULT_DOMAIN.CFG_PUBLIC_PATH; ?>/favicon/favicon-96x96.png?ver=<?php echo date("YmdHis") ?>">
+		<link rel="icon" type="image/png" sizes="16x16" href="<?php echo DEFAULT_DOMAIN.CFG_PUBLIC_PATH; ?>/favicon/favicon-16x16.png?ver=<?php echo date("YmdHis") ?>">
+		<link rel="manifest" href="<?php echo DEFAULT_DOMAIN.CFG_PUBLIC_PATH; ?>/favicon/manifest.json">
+		<meta name="msapplication-TileColor" content="#ffffff">
+		<meta name="msapplication-TileImage" content="<?php echo DEFAULT_DOMAIN.CFG_PUBLIC_PATH; ?>/favicon/ms-icon-144x144.png?ver=<?php echo date("YmdHis") ?>">
+		<meta name="theme-color" content="#ffffff">
+
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@100..900&family=Noto+Serif:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+		<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+
+
+		<script src="//code.jquery.com/jquery-3.6.0.min.js"></script>
+		<link rel="stylesheet" href="<?php echo CFG_PUBLIC_PATH; ?>/css/fonts.css?ver=<?php echo date("YmdHis") ?>" />
+		<link rel="stylesheet" href="<?php echo CFG_PUBLIC_PATH; ?>/css/reset.css?ver=<?php echo date("YmdHis") ?>" />
+		<link rel="stylesheet" href="<?php echo CFG_PUBLIC_PATH; ?>/css/board.css?ver=<?php echo date("YmdHis") ?>" />
+		<link rel="stylesheet" href="<?php echo CFG_PUBLIC_PATH; ?>/css/popup.css?ver=<?php echo date("YmdHis") ?>" />
+		<link rel="stylesheet" href="<?php echo CFG_PUBLIC_PATH; ?>/css/commonui<?php echo CFG_DESIGN_TYPE;?>.css?ver=<?php echo date("YmdHis") ?>" />
+		<link rel="stylesheet" href="<?php echo CFG_PUBLIC_PATH; ?>/css/contents<?php echo CFG_DESIGN_TYPE;?>.css?ver=<?php echo date("YmdHis") ?>" />
+		<link rel="stylesheet" href="<?php echo CFG_PUBLIC_PATH; ?>/css/slick.css?ver=<?php echo date("YmdHis") ?>" />
+		<link rel="stylesheet" href="<?php echo CFG_PUBLIC_PATH; ?>/css/main.css?ver=<?php echo date("YmdHis") ?>" />
+		<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.2/css/all.min.css" />
+		<link rel="stylesheet" href="//code.jquery.com/ui/1.13.1/themes/base/jquery-ui.css" />
+		<script src="<?php echo CFG_PUBLIC_PATH; ?>/js/commonui<?php echo CFG_DESIGN_TYPE;?>.js?ver=<?php echo date("YmdHis") ?>"></script>
+		<script src="<?php echo CFG_PUBLIC_PATH; ?>/js/pointweb.js?ver=<?php echo date("YmdHis") ?>"></script>
+		<script src="<?php echo CFG_PUBLIC_PATH; ?>/js/slick.min.js?ver=<?php echo date("YmdHis") ?>"></script>
+		<script src="<?php echo CFG_PUBLIC_PATH; ?>/js/Modernizr.js?ver=<?php echo date("YmdHis") ?>"></script>
+		<script src="<?php echo CFG_PUBLIC_PATH; ?>/js/masonry.pkgd.js?ver=<?php echo date("YmdHis") ?>"></script>
+		<script src="//code.jquery.com/ui/1.13.1/jquery-ui.js"></script>
+		<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+		<script src="//unpkg.com/imagesloaded@4/imagesloaded.pkgd.min.js"></script>
+<?php
+if(in_array($folder, array("bbs", "board")))
+{
+?>
+		<script src="<?php echo CFG_PUBLIC_PATH; ?>/js/board.js?ver=<?php echo date("YmdHis") ?>"></script>
+		<script src="<?php echo CFG_PUBLIC_PATH; ?>/js/comment.js?ver=<?php echo date("YmdHis") ?>"></script>
+<?php
+}
+?>
+		<!--[if lt IE 9]>
+		<script src="<?php echo CFG_PUBLIC_PATH; ?>/js/html5shiv.js?ver=<?php echo date("YmdHis") ?>"></script>
+		<![endif]-->
+	</head>
+	<body>
+	<div class="overlay"></div>
+		<!-- 레이어 팝업 시 백그라운드, 페이지가 출력 될 부분 정의 -->
+		<div class="layer"></div>
+		<div class="spinner-wrap">
+			<div class="spinner-box">
+				<span class="smooth spinner"></span>
+			</div>
+		</div>
+		<div id="wrap">

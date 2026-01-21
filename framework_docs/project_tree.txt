@@ -1,0 +1,888 @@
+//프로젝트 전체의 폴더/파일 구조.
+
+│  header_meta.php
+│  index.php
+│  pwmngr.php
+│  
+├─api
+│      map.php
+│      
+├─_controller
+│  │  index.php
+│  │  
+│  ├─bbs
+│  │      comment.php
+│  │      form.php
+│  │      list.php
+│  │      password.php
+│  │      proc.php
+│  │      view.php
+│  │      
+│  ├─board
+│  │      comment.php
+│  │      form.php
+│  │      list.php
+│  │      password.php
+│  │      proc.php
+│  │      view.php
+│  │      
+│  ├─contactus
+│  │      form.php
+│  │      form.smg.php
+│  │      form.test.lsm.php
+│  │      form2.php
+│  │      form3.php
+│  │      proc.php
+│  │      proc.smg.php
+│  │      proc.test.lsm.php
+│  │      proc2.php
+│  │      proc3.php
+│  │      
+│  ├─member
+│  │      complete.php
+│  │      find.php
+│  │      findid.php
+│  │      findpwd.php
+│  │      proc.php
+│  │      signin.php
+│  │      signup.php
+│  │      
+│  ├─mypage
+│  │      check.php
+│  │      edit.php
+│  │      password.php
+│  │      proc.php
+│  │      withdraw.php
+│  │      
+│  ├─policy
+│  │      guide.php
+│  │      private.php
+│  │      terms.php
+│  │      
+│  └─pwmngr
+│      │  index.php
+│      │  login.php
+│      │  
+│      ├─bbs
+│      │  │  comment.php
+│      │  │  form.php
+│      │  │  list.php
+│      │  │  proc.php
+│      │  │  
+│      │  ├─cfg
+│      │  │      form.php
+│      │  │      list.php
+│      │  │      proc.php
+│      │  │      
+│      │  ├─media
+│      │  │      form.php
+│      │  │      list.php
+│      │  │      proc.php
+│      │  │      
+│      │  ├─pqna
+│      │  │      form.php
+│      │  │      list.php
+│      │  │      proc.php
+│      │  │      
+│      │  ├─qna
+│      │  │      form.php
+│      │  │      list.php
+│      │  │      proc.php
+│      │  │      
+│      │  ├─review
+│      │  │      edit.php
+│      │  │      list.php
+│      │  │      proc.php
+│      │  │      
+│      │  └─skin
+│      │          form_default.php
+│      │          form_faq.php
+│      │          form_gallery.php
+│      │          form_gallery2.php
+│      │          form_webzine.php
+│      │          list_default.php
+│      │          list_faq.php
+│      │          list_gallery.php
+│      │          list_gallery2.php
+│      │          list_webzine.php
+│      │          
+│      ├─inquiry
+│      │  └─info
+│      │          form.php
+│      │          list.php
+│      │          proc.php
+│      │          
+│      ├─inquiry_smg
+│      ├─login
+│      │      proc.php
+│      │      
+│      ├─manage
+│      │  ├─api
+│      │  │      edit.php
+│      │  │      proc.php
+│      │  │      
+│      │  ├─array
+│      │  │      list.php
+│      │  │      multi.add.php
+│      │  │      proc.php
+│      │  │      
+│      │  ├─banner
+│      │  │      form.php
+│      │  │      list.php
+│      │  │      proc.php
+│      │  │      sorting.php
+│      │  │      
+│      │  ├─manager
+│      │  │      form.php
+│      │  │      list.php
+│      │  │      proc.php
+│      │  │      
+│      │  ├─menu
+│      │  │      list.php
+│      │  │      list_20230215_esh.php
+│      │  │      multi.add.php
+│      │  │      proc.php
+│      │  │      proc_20230215_esh.php
+│      │  │      
+│      │  ├─permission
+│      │  │      form.php
+│      │  │      form_20230217_esh.php
+│      │  │      proc.php
+│      │  │      
+│      │  ├─popup
+│      │  │      form.php
+│      │  │      list.php
+│      │  │      proc.php
+│      │  │      
+│      │  ├─seo
+│      │  │      form.php
+│      │  │      list.php
+│      │  │      proc.php
+│      │  │      
+│      │  ├─setting
+│      │  │      edit.bak.php
+│      │  │      edit.php
+│      │  │      proc.bak.php
+│      │  │      proc.php
+│      │  │      
+│      │  ├─sms
+│      │  │      form.php
+│      │  │      log.php
+│      │  │      proc.php
+│      │  │      
+│      │  └─source
+│      │          form.php
+│      │          proc.php
+│      │          
+│      ├─member
+│      │  ├─info
+│      │  │      form.php
+│      │  │      list.php
+│      │  │      proc.php
+│      │  │      
+│      │  └─withdraw
+│      │          list.php
+│      │          
+│      ├─register
+│      │  └─info
+│      │          list.php
+│      │          
+│      ├─statistics
+│      │      connect.php
+│      │      daily.php
+│      │      proc.php
+│      │      referrer.php
+│      │      
+│      ├─_css
+│      │  │  admin.css
+│      │  │  popup.css
+│      │  │  reset.css
+│      │  │  
+│      │  └─fonts
+│      │          nanum-myeongjo-v15-korean-700.eot
+│      │          nanum-myeongjo-v15-korean-700.svg
+│      │          nanum-myeongjo-v15-korean-700.ttf
+│      │          nanum-myeongjo-v15-korean-700.woff
+│      │          nanum-myeongjo-v15-korean-700.woff2
+│      │          nanum-myeongjo-v15-korean-800.eot
+│      │          nanum-myeongjo-v15-korean-800.svg
+│      │          nanum-myeongjo-v15-korean-800.ttf
+│      │          nanum-myeongjo-v15-korean-800.woff
+│      │          nanum-myeongjo-v15-korean-800.woff2
+│      │          nanum-myeongjo-v15-korean-regular.eot
+│      │          nanum-myeongjo-v15-korean-regular.svg
+│      │          nanum-myeongjo-v15-korean-regular.ttf
+│      │          nanum-myeongjo-v15-korean-regular.woff
+│      │          nanum-myeongjo-v15-korean-regular.woff2
+│      │          noto-sans-kr-v12-korean-100.eot
+│      │          noto-sans-kr-v12-korean-100.svg
+│      │          noto-sans-kr-v12-korean-100.woff
+│      │          noto-sans-kr-v12-korean-100.woff2
+│      │          noto-sans-kr-v12-korean-300.eot
+│      │          noto-sans-kr-v12-korean-300.svg
+│      │          noto-sans-kr-v12-korean-300.woff
+│      │          noto-sans-kr-v12-korean-300.woff2
+│      │          noto-sans-kr-v12-korean-500.eot
+│      │          noto-sans-kr-v12-korean-500.svg
+│      │          noto-sans-kr-v12-korean-500.woff
+│      │          noto-sans-kr-v12-korean-500.woff2
+│      │          noto-sans-kr-v12-korean-700.eot
+│      │          noto-sans-kr-v12-korean-700.svg
+│      │          noto-sans-kr-v12-korean-700.woff
+│      │          noto-sans-kr-v12-korean-700.woff2
+│      │          noto-sans-kr-v12-korean-900.eot
+│      │          noto-sans-kr-v12-korean-900.svg
+│      │          noto-sans-kr-v12-korean-900.woff
+│      │          noto-sans-kr-v12-korean-900.woff2
+│      │          noto-sans-kr-v12-korean-regular.eot
+│      │          noto-sans-kr-v12-korean-regular.svg
+│      │          noto-sans-kr-v12-korean-regular.woff
+│      │          noto-sans-kr-v12-korean-regular.woff2
+│      │          slick.eot
+│      │          slick.svg
+│      │          slick.ttf
+│      │          slick.woff
+│      │          
+│      ├─_images
+│      │      32px.png
+│      │      @draft_logo.png
+│      │      end-next.svg
+│      │      first-prev.svg
+│      │      icon_file.png
+│      │      icon_first.gif
+│      │      icon_last.gif
+│      │      icon_new.png
+│      │      icon_next.gif
+│      │      icon_pre.gif
+│      │      ico_select.png
+│      │      login_bg1.jpg
+│      │      logo.png
+│      │      logo2.png
+│      │      next.svg
+│      │      prev.svg
+│      │      
+│      ├─_include
+│      │      aside.php
+│      │      bottom.php
+│      │      footer.php
+│      │      meta.php
+│      │      top.php
+│      │      top_20230217_esh.php
+│      │      
+│      └─_js
+│          │  admin.js
+│          │  pointweb.js
+│          │  
+│          ├─billboard
+│          │      billboard.min.css
+│          │      
+│          ├─jqchart
+│          │      jquery.jqChart.css
+│          │      jquery.jqChart.min.js
+│          │      
+│          └─tree
+│              │  tree.css
+│              │  tree.js
+│              │  
+│              └─image
+│                      gradient.gif
+│                      grey_line.gif
+│                      tree_icons.gif
+│                      tree_li.gif
+│                      tree_li_last.gif
+│                      
+├─_include
+│  │  common.php
+│  │  look_around_log.php
+│  │  
+│  ├─PHPMailer
+│  │      class.phpmailer.php
+│  │      class.smtp.php
+│  │      
+│  └─zm_crypt
+│          andale12.gdf
+│          zm_crypt.php
+│          
+├─_library
+│      api.function.php
+│      config.php
+│      function.php
+│      shield.php
+│      translator.php
+│      
+├─_model
+│      class.admin.php
+│      class.api.php
+│      class.arrays.php
+│      class.banner.php
+│      class.bbs.php
+│      class.board.php
+│      class.connect.php
+│      class.db_query.php
+│      class.facility.php
+│      class.franchise.php
+│      class.inquiry.php
+│      class.inquiry.smg.php
+│      class.inquiry2.php
+│      class.kakao.php
+│      class.look_around.php
+│      class.member.php
+│      class.menu.php
+│      class.menus.php
+│      class.paging.php
+│      class.permission.php
+│      class.popup.php
+│      class.product.php
+│      class.product_img.php
+│      class.qna.php
+│      class.register.php
+│      class.seo.php
+│      class.site.php
+│      class.sms.php
+│      class.store.php
+│      class.user_agent.php
+│      make.php
+│      
+├─_public
+│  │  footer.php
+│  │  header.php
+│  │  menu_bottom1.php
+│  │  menu_bottom2.php
+│  │  menu_top1.php
+│  │  menu_top2.php
+│  │  popup.php
+│  │  
+│  ├─css
+│  │      board.css
+│  │      commonui1.css
+│  │      commonui2.css
+│  │      contents1.css
+│  │      contents2.css
+│  │      fonts.css
+│  │      main.css
+│  │      popup.css
+│  │      reset.css
+│  │      slick.css
+│  │      
+│  ├─favicon
+│  │      android-icon-144x144.png
+│  │      android-icon-192x192.png
+│  │      android-icon-36x36.png
+│  │      android-icon-48x48.png
+│  │      android-icon-72x72.png
+│  │      android-icon-96x96.png
+│  │      apple-icon-114x114.png
+│  │      apple-icon-120x120.png
+│  │      apple-icon-144x144.png
+│  │      apple-icon-152x152.png
+│  │      apple-icon-180x180.png
+│  │      apple-icon-57x57.png
+│  │      apple-icon-60x60.png
+│  │      apple-icon-72x72.png
+│  │      apple-icon-76x76.png
+│  │      apple-icon-precomposed.png
+│  │      apple-icon.png
+│  │      browserconfig.xml
+│  │      favicon-16x16.png
+│  │      favicon-32x32.png
+│  │      favicon-96x96.png
+│  │      favicon.ico
+│  │      manifest.json
+│  │      ms-icon-144x144.png
+│  │      ms-icon-150x150.png
+│  │      ms-icon-310x310.png
+│  │      ms-icon-70x70.png
+│  │      
+│  ├─file
+│  │      leaderenc_ci.ai
+│  │      
+│  ├─fonts
+│  │      Pretendard-Black.eot
+│  │      Pretendard-Black.otf
+│  │      Pretendard-Black.svg
+│  │      Pretendard-Black.ttf
+│  │      Pretendard-Black.woff
+│  │      Pretendard-Black.woff2
+│  │      Pretendard-Bold.eot
+│  │      Pretendard-Bold.otf
+│  │      Pretendard-Bold.svg
+│  │      Pretendard-Bold.ttf
+│  │      Pretendard-Bold.woff
+│  │      Pretendard-Bold.woff2
+│  │      Pretendard-ExtraBold.eot
+│  │      Pretendard-ExtraBold.otf
+│  │      Pretendard-ExtraBold.svg
+│  │      Pretendard-ExtraBold.ttf
+│  │      Pretendard-ExtraBold.woff
+│  │      Pretendard-ExtraBold.woff2
+│  │      Pretendard-ExtraLight.eot
+│  │      Pretendard-ExtraLight.otf
+│  │      Pretendard-ExtraLight.svg
+│  │      Pretendard-ExtraLight.ttf
+│  │      Pretendard-ExtraLight.woff
+│  │      Pretendard-ExtraLight.woff2
+│  │      Pretendard-Light.eot
+│  │      Pretendard-Light.otf
+│  │      Pretendard-Light.svg
+│  │      Pretendard-Light.ttf
+│  │      Pretendard-Light.woff
+│  │      Pretendard-Light.woff2
+│  │      Pretendard-Medium.eot
+│  │      Pretendard-Medium.otf
+│  │      Pretendard-Medium.svg
+│  │      Pretendard-Medium.ttf
+│  │      Pretendard-Medium.woff
+│  │      Pretendard-Medium.woff2
+│  │      Pretendard-Regular.eot
+│  │      Pretendard-Regular.otf
+│  │      Pretendard-Regular.svg
+│  │      Pretendard-Regular.ttf
+│  │      Pretendard-Regular.woff
+│  │      Pretendard-Regular.woff2
+│  │      Pretendard-SemiBold.eot
+│  │      Pretendard-SemiBold.otf
+│  │      Pretendard-SemiBold.svg
+│  │      Pretendard-SemiBold.ttf
+│  │      Pretendard-SemiBold.woff
+│  │      Pretendard-SemiBold.woff2
+│  │      Pretendard-Thin.eot
+│  │      Pretendard-Thin.otf
+│  │      Pretendard-Thin.svg
+│  │      Pretendard-Thin.ttf
+│  │      Pretendard-Thin.woff
+│  │      Pretendard-Thin.woff2
+│  │      Pretendard.css
+│  │      
+│  ├─images1
+│  │  ├─@draft
+│  │  │      @about_img.png
+│  │  │      @ci_img01.png
+│  │  │      @ci_img02.png
+│  │  │      @ci_img03.png
+│  │  │      @ci_img04.png
+│  │  │      @ci_img05.png
+│  │  │      @ci_img06.png
+│  │  │      @ci_img07.png
+│  │  │      @company_img01.png
+│  │  │      @gallery_img1.png
+│  │  │      @gallery_img2.png
+│  │  │      @gallery_img3.png
+│  │  │      @gallery_img4.png
+│  │  │      @gallery_img5.png
+│  │  │      @gallery_img6.png
+│  │  │      @gallery_img7.png
+│  │  │      @gallery_img8.png
+│  │  │      @gallery_img9.png
+│  │  │      @greetings.jpg
+│  │  │      @list_img.png
+│  │  │      @sign.png
+│  │  │      pageing.png
+│  │  │      
+│  │  ├─common
+│  │  │      end-next.svg
+│  │  │      first-prev.svg
+│  │  │      flogo.svg
+│  │  │      logo.svg
+│  │  │      logo3.svg
+│  │  │      next.svg
+│  │  │      no-img.png
+│  │  │      no-img.svg
+│  │  │      not_find.svg
+│  │  │      not_post.svg
+│  │  │      prev.svg
+│  │  │      
+│  │  ├─contents
+│  │  │      m_sub_v01.png
+│  │  │      m_sub_v02.png
+│  │  │      m_sub_v03.png
+│  │  │      m_sub_v04.png
+│  │  │      m_sub_v05.png
+│  │  │      sub_v01.png
+│  │  │      sub_v02.png
+│  │  │      sub_v03.png
+│  │  │      sub_v04.png
+│  │  │      sub_v05.png
+│  │  │      
+│  │  ├─icon
+│  │  │      allmenu.svg
+│  │  │      allmenu2.svg
+│  │  │      arrow.svg
+│  │  │      bbs_arrow.svg
+│  │  │      close.svg
+│  │  │      close2.svg
+│  │  │      close_off.svg
+│  │  │      close_on.svg
+│  │  │      delivery_icon.svg
+│  │  │      f-sns1.svg
+│  │  │      f-sns2.svg
+│  │  │      f-sns3.svg
+│  │  │      kids_icon.svg
+│  │  │      lan_icon.svg
+│  │  │      lan_icon2.svg
+│  │  │      link_icon.svg
+│  │  │      list.svg
+│  │  │      marker_icon.svg
+│  │  │      more_btn.svg
+│  │  │      new.svg
+│  │  │      parking_icon.svg
+│  │  │      password_ico.svg
+│  │  │      search.svg
+│  │  │      select_icon.svg
+│  │  │      takeout_icon.svg
+│  │  │      
+│  │  └─main
+│  ├─images2
+│  │  ├─@draft
+│  │  │      @gallery_img1.png
+│  │  │      @gallery_img2.png
+│  │  │      @gallery_img3.png
+│  │  │      @gallery_img4.png
+│  │  │      @gallery_img5.png
+│  │  │      @gallery_img6.png
+│  │  │      @gallery_img7.png
+│  │  │      @gallery_img8.png
+│  │  │      @gallery_img9.png
+│  │  │      pageing.png
+│  │  │      
+│  │  ├─common
+│  │  │      end-next.svg
+│  │  │      first-prev.svg
+│  │  │      flogo.svg
+│  │  │      logo3.svg
+│  │  │      next.svg
+│  │  │      no-img.png
+│  │  │      no-img.svg
+│  │  │      not_find.svg
+│  │  │      not_post.svg
+│  │  │      prev.svg
+│  │  │      
+│  │  ├─contents
+│  │  │      m_sub_v01.png
+│  │  │      m_sub_v02.png
+│  │  │      m_sub_v03.png
+│  │  │      m_sub_v04.png
+│  │  │      m_sub_v05.png
+│  │  │      sub_v01.png
+│  │  │      sub_v02.png
+│  │  │      sub_v03.png
+│  │  │      sub_v04.png
+│  │  │      sub_v05.png
+│  │  │      
+│  │  ├─icon
+│  │  │      allmenu.svg
+│  │  │      allmenu2.svg
+│  │  │      arrow.svg
+│  │  │      bbs_arrow.svg
+│  │  │      close.svg
+│  │  │      close2.svg
+│  │  │      close_off.svg
+│  │  │      close_on.svg
+│  │  │      delivery_icon.svg
+│  │  │      f-sns1.svg
+│  │  │      f-sns2.svg
+│  │  │      f-sns3.svg
+│  │  │      kids_icon.svg
+│  │  │      lan_icon.svg
+│  │  │      lan_icon2.svg
+│  │  │      link_icon.svg
+│  │  │      list.svg
+│  │  │      marker_icon.svg
+│  │  │      more_btn.svg
+│  │  │      new.svg
+│  │  │      noti_icon.svg
+│  │  │      nv.svg
+│  │  │      parking_icon.svg
+│  │  │      password_ico.svg
+│  │  │      search.svg
+│  │  │      select_icon.svg
+│  │  │      takeout_icon.svg
+│  │  │      wish_icon.svg
+│  │  │      
+│  │  └─main
+│  ├─include
+│  │      private.php
+│  │      snb.php
+│  │      sub.top1.php
+│  │      sub.top2.php
+│  │      top.php
+│  │      
+│  ├─js
+│  │      board.js
+│  │      comment.js
+│  │      commonui1.js
+│  │      commonui2.js
+│  │      html5shiv.js
+│  │      masonry.pkgd.js
+│  │      Modernizr.js
+│  │      pointweb.js
+│  │      slick.min.js
+│  │      
+│  ├─mail
+│  │      findid.php
+│  │      findpw.php
+│  │      inquiry_mail.php
+│  │      signup.php
+│  │      test.lsm.php
+│  │      
+│  ├─smart_editor
+│  │  │  index.html
+│  │  │  pw_editor.php
+│  │  │  SmartEditor2.html
+│  │  │  SmartEditor2Skin.html
+│  │  │  SmartEditor2Skin_en_US.html
+│  │  │  SmartEditor2Skin_ja_JP.html
+│  │  │  SmartEditor2Skin_ko_KR.html
+│  │  │  SmartEditor2Skin_zh_CN.html
+│  │  │  SmartEditor2Skin_zh_TW.html
+│  │  │  smart_editor2_inputarea.html
+│  │  │  smart_editor2_inputarea_ie8.html
+│  │  │  
+│  │  ├─css
+│  │  │  ├─en_US
+│  │  │  │      smart_editor2.css
+│  │  │  │      smart_editor2_in.css
+│  │  │  │      smart_editor2_items.css
+│  │  │  │      smart_editor2_out.css
+│  │  │  │      
+│  │  │  ├─ja_JP
+│  │  │  │      smart_editor2.css
+│  │  │  │      smart_editor2_in.css
+│  │  │  │      smart_editor2_items.css
+│  │  │  │      smart_editor2_out.css
+│  │  │  │      
+│  │  │  ├─ko_KR
+│  │  │  │      smart_editor2.css
+│  │  │  │      smart_editor2_in.css
+│  │  │  │      smart_editor2_items.css
+│  │  │  │      smart_editor2_out.css
+│  │  │  │      
+│  │  │  ├─zh_CN
+│  │  │  │      smart_editor2.css
+│  │  │  │      smart_editor2_in.css
+│  │  │  │      smart_editor2_items.css
+│  │  │  │      smart_editor2_out.css
+│  │  │  │      
+│  │  │  └─zh_TW
+│  │  │          smart_editor2.css
+│  │  │          smart_editor2_in.css
+│  │  │          smart_editor2_items.css
+│  │  │          smart_editor2_out.css
+│  │  │          
+│  │  ├─img
+│  │  │  │  bg_b1.png
+│  │  │  │  bg_button.gif
+│  │  │  │  bg_button_left.gif
+│  │  │  │  bg_button_right.gif
+│  │  │  │  bg_find_h3.gif
+│  │  │  │  bg_help.gif
+│  │  │  │  bg_line1.gif
+│  │  │  │  bg_quote2.gif
+│  │  │  │  bg_set.gif
+│  │  │  │  bg_spell.gif
+│  │  │  │  bg_text_tool.gif
+│  │  │  │  bx_set_110302.gif
+│  │  │  │  icon_set.gif
+│  │  │  │  ico_extend.png
+│  │  │  │  
+│  │  │  ├─en_US
+│  │  │  │      btn_set.png
+│  │  │  │      text_tool_set.png
+│  │  │  │      
+│  │  │  ├─ja_JP
+│  │  │  │      btn_set.png
+│  │  │  │      text_tool_set.png
+│  │  │  │      
+│  │  │  ├─ko_KR
+│  │  │  │      btn_set.png
+│  │  │  │      text_tool_set.png
+│  │  │  │      
+│  │  │  ├─zh_CN
+│  │  │  │      btn_set.png
+│  │  │  │      text_tool_set.png
+│  │  │  │      
+│  │  │  └─zh_TW
+│  │  │          btn_set.png
+│  │  │          text_tool_set.png
+│  │  │          
+│  │  ├─js
+│  │  │  │  smarteditor2.js
+│  │  │  │  
+│  │  │  ├─bundle
+│  │  │  │      base.js
+│  │  │  │      extra.js
+│  │  │  │      husky-range.js
+│  │  │  │      index.js
+│  │  │  │      lazy.js
+│  │  │  │      
+│  │  │  ├─lib
+│  │  │  │      jindo2.all.js
+│  │  │  │      jindo_component.js
+│  │  │  │      
+│  │  │  └─service
+│  │  │          HuskyEZCreator.js
+│  │  │          SE2BasicCreator.js
+│  │  │          SE2M_Configuration.js
+│  │  │          
+│  │  └─photo_uploader
+│  │      ├─plugin
+│  │      │      hp_SE2M_AttachQuickPhoto.js
+│  │      │      
+│  │      └─popup
+│  │          │  attach_photo.js
+│  │          │  callback.html
+│  │          │  file_uploader.php
+│  │          │  file_uploader_html5.php
+│  │          │  index.html
+│  │          │  jindo.fileuploader.js
+│  │          │  jindo.min.js
+│  │          │  photo_uploader.html
+│  │          │  
+│  │          ├─css
+│  │          │      jquery.fileupload-noscript.css
+│  │          │      jquery.fileupload-ui-noscript.css
+│  │          │      jquery.fileupload-ui.css
+│  │          │      jquery.fileupload.css
+│  │          │      style.css
+│  │          │      
+│  │          ├─img
+│  │          │      delete.png
+│  │          │      loading.gif
+│  │          │      progressbar.gif
+│  │          │      system_delete.png
+│  │          │      
+│  │          ├─js
+│  │          │  │  basic.js
+│  │          │  │  jquery-1.8.3.min.js
+│  │          │  │  jquery-ui.min.js
+│  │          │  │  jquery.fileupload-process.js
+│  │          │  │  jquery.fileupload-ui.js
+│  │          │  │  jquery.fileupload.js
+│  │          │  │  jquery.iframe-transport.js
+│  │          │  │  jquery.ui.widget.js
+│  │          │  │  
+│  │          │  └─0000755
+│  │          ├─php
+│  │          │      index.php
+│  │          │      JSON.php
+│  │          │      test.txt
+│  │          │      UploadHandler.php
+│  │          │      _common.php
+│  │          │      
+│  │          └─swfupload
+│  │                  fileprogress.js
+│  │                  handlers.js
+│  │                  jquery.swfupload.js
+│  │                  swfupload.js
+│  │                  swfupload.queue.js
+│  │                  swfupload.swf
+│  │                  XPButtonUploadText_61x22.png
+│  │                  
+│  └─uploadFiles
+│      ├─board_data
+│      │  ├─gallery
+│      │  │  └─20231011142913435
+│      │  │          C6ZX41LLQ6FG8G3DTQNU.jpg
+│      │  │          HPSEAS7PFCK4E7FD87G9.jpg
+│      │  │          
+│      │  ├─notice
+│      │  │  ├─20231010130256681
+│      │  │  │      7FF82C26Q7UNDXBRAPGP.jpg
+│      │  │  │      
+│      │  │  └─20231011161839971
+│      │  │          97FCS5RL1X8QXKY3D7LQ.jpg
+│      │  │          
+│      │  └─special
+│      │      └─20230131102653165
+│      │              E547RYAFK5K4ZQYPHYFL.jpg
+│      │              
+│      ├─cfg
+│      │      1ALLLPKF7YX5SXXA3H8H.jpg
+│      │      8RT82ZAOGYBEZEPFZC8T.png
+│      │      8SXEXXESSECC758QDQSF.png
+│      │      DFZ6GP21KFKUX86PZLTO.jpg
+│      │      
+│      ├─inquiry
+│      ├─popup
+│      └─seo
+│          └─1
+│                  3C9E499LSZ7ST4CTDQBG.png
+│                  
+└─_view
+    │  index.htm
+    │  
+    ├─bbs
+    │  │  comment.htm
+    │  │  form.htm
+    │  │  list.htm
+    │  │  password.htm
+    │  │  view.htm
+    │  │  
+    │  ├─default
+    │  │      form.htm
+    │  │      list.htm
+    │  │      view.htm
+    │  │      
+    │  ├─faq
+    │  │      list.htm
+    │  │      
+    │  ├─gallery
+    │  │      list.htm
+    │  │      
+    │  └─webzine
+    │          list.htm
+    │          
+    ├─board
+    │  │  comment.htm
+    │  │  form.htm
+    │  │  list.htm
+    │  │  password.htm
+    │  │  view.htm
+    │  │  
+    │  └─skin
+    │          form_default.htm
+    │          form_gallery.htm
+    │          list_default.htm
+    │          list_faq.htm
+    │          list_gallery.htm
+    │          list_gallery2.htm
+    │          list_webzine.htm
+    │          no_data.htm
+    │          view_default.htm
+    │          
+    ├─contactus
+    │      form.htm
+    │      form.smg.htm
+    │      form.test.lsm.htm
+    │      form2.htm
+    │      form2_20211230.htm
+    │      form3.htm
+    │      form4.htm
+    │      form5.htm
+    │      form_20211230.htm
+    │      
+    ├─member
+    │      complete.htm
+    │      find.htm
+    │      findid.htm
+    │      findpwd.htm
+    │      signin.htm
+    │      signup.htm
+    │      
+    ├─mypage
+    │      check.htm
+    │      edit.htm
+    │      password.htm
+    │      snb.htm
+    │      withdraw.htm
+    │      
+    ├─policy
+    │      guide.htm
+    │      private.htm
+    │      terms.htm
+    │      
+    └─_pc
+        └─kr
+            └─test
+                    test.htm
+                    test1.htm
+                    

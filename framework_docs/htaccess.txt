@@ -1,0 +1,21 @@
+//사이트 htaccess 파일
+PHP_VALUE mysql.default_charset UTF8
+PHP_FLAG register_globals ON
+PHP_FLAG display_errors ON
+PHP_VALUE error_reporting 6135
+ErrorDocument 404 NO
+
+php_flag  log_errors on
+php_value error_log /pw_sdhome/php_errors.log
+
+Options -MultiViews
+RewriteEngine On
+Options -Indexes
+RewriteBase /
+RewriteCond %{REQUEST_URI} !^/favicon.ico
+RewriteCond %{REQUEST_URI} !^/pwmngr.php
+RewriteCond %{REQUEST_URI} !^/_controller/pwmngr/
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-l
+RewriteRule ^(.*)$ index.php?public_url=$1 [QSA,L]

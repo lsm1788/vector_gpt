@@ -1,0 +1,1231 @@
+<!-- 도메인에 들어왔을때 나오는 메인페이지의 view파일 -->
+<script src="<?php echo CFG_PUBLIC_PATH; ?>/js/slider.bundle.js?ver=<?php echo date("YmdHis") ?>"></script>
+<link rel="stylesheet" href="<?php echo CFG_PUBLIC_PATH; ?>/css/slider.css?ver=<?php echo date("YmdHis") ?>" />
+<main>
+	<section class="section01">
+		<div class="slide-box">
+			<div class="swiper mainSwiper">
+				<div class="swiper-wrapper">
+					<!-- 첫 슬라이드는 영상 -->
+					<div class="swiper-slide">
+						<video id="videoSlide" autoplay="" muted="" playsinline="">
+							<source src="<?php echo CFG_PUBLIC_PATH; ?>/video/main_video.mp4" type="video/mp4">
+							<source src="<?php echo CFG_PUBLIC_PATH; ?>/video/main_video.mp4">
+						</video>
+						<div class="txt-box">
+							<span>
+								<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/badge.png" alt="">
+							</span>
+							<h2>
+								<strong>인증받은 전문의</strong> 가 함께하는<br>
+								수준높은 분과별 협진 진료
+							</h2>
+							<p>
+								다솜치과의 전 의료진은 보건복지부 인증을 받은 전문의 입니다.
+							</p>
+						</div>
+					</div>
+
+					<!-- 나머지는 이미지 -->
+					<div class="swiper-slide">
+						<picture>
+							<source media="(max-width:768px)" srcset="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/m_main_slide01.png">
+							<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/main_slide01.png" alt="">
+						</picture>
+
+					</div>
+				</div>
+				<div class="control">
+					<div class="swiper-pagination2"></div>
+					<div class="swiper-pagination"></div>
+				</div>
+			</div>
+			<i>
+				<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/icon/ico_mouse.svg" alt="">
+			</i>
+		</div>
+	</section>
+	<section class="section02">
+		<div class="layout">
+			<div class="main-hgroup">
+				<em>DASOM DENTAL CLINIC</em>
+				<h2>
+					최상의 의료 서비스를<br>
+					<strong>제공할 것을 약속드립니다.</strong>
+				</h2>
+				<p>
+					깊은 이해와 공감으로 치과에 대한 두려움을 없이 안전하게 치료합니다.
+				</p>
+			</div>
+			<ul>
+				<li>
+					<figure>
+						<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/sec02_img01.png" alt="">
+						<figcaption>
+							<em>전문성</em>
+							분과별 협진진료
+						</figcaption>
+					</figure>
+				</li>
+				<li>
+					<figure>
+						<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/sec02_img02.png" alt="">
+						<figcaption>
+							<em>통증</em>
+							두려움 줄이기
+						</figcaption>
+					</figure>
+				</li>
+				<li>
+					<figure>
+						<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/sec02_img03.png" alt="">
+						<figcaption>
+							<em>정성</em>
+							충분한 시간 투자
+						</figcaption>
+					</figure>
+				</li>
+				<li>
+					<figure>
+						<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/sec02_img04.png" alt="">
+						<figcaption>
+							<em>신뢰</em>
+							고난이도 치료사례
+						</figcaption>
+					</figure>
+				</li>
+				<li>
+					<figure>
+						<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/sec02_img05.png" alt="">
+						<figcaption>
+							<em>안전</em>
+							내과전문의 협진진료
+						</figcaption>
+					</figure>
+				</li>
+			</ul>
+		</div>
+	</section>
+	<section class="section03">
+
+		<div class="inner">
+			<div class="main-hgroup">
+				<h2>
+					보건복지부 인증 전문의<i><img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/badge.png" alt=""></i><br>
+					<strong>각 분과별 협진 진료</strong>
+				</h2>
+				<p>내과 전문의 협진으로 더 안전하고 정확하게 진단합니다.</p>
+			</div>
+			<div class="flex-box">
+				<div class="txt-box">
+					<div class="name-box">
+						<em>임플란트, 보철과</em>
+						<h3>신운철 대표원장<span>Shin Woon-cheol</span></h3>
+						<i><img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/career.png" alt=""> </i>
+					</div>
+					<ul>
+						<li>서울대학교 치의학대학원 보철/임플란트 과정 수료</li>
+						<li>미국뉴욕대학교(NYU) 임플란트 연수과정 수료</li>
+						<li>미국임플란트학회(AAID) 임플란트 연수과정 수료</li>
+						<li>미국임플란트학회(AAID) 정회원, 인정의</li>
+						<li>펜실베니아대학 신경치료(Upenn endo) 과정 수료</li>
+						<li>미국치과의사협회 AGD 정회원</li>
+						<li>연세대학교 치과대학 임플란트 AGD과정 수료</li>
+					</ul>
+				</div>
+				<div class="slide-box">
+					<div class="swiper staffSwiper">
+						<div class="swiper-wrapper">
+							<div class="swiper-slide">
+								<a href="/ds/staff#sta01">
+									<div class="img">
+										<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/staff01.png" alt="">
+										<i>
+											의료진 소개<br>
+											→
+										</i>
+									</div>
+									<div class="txt" data-role="target">
+										<div class="name-box">
+											<em>임플란트, 보철과</em>
+											<h3>신운철 대표원장<span>Shin Woon-cheol</span></h3>
+											<i><img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/career.png" alt=""> </i>
+										</div>
+										<ul>
+											<li>서울대학교 치의학대학원 보철/임플란트 과정 수료</li>
+											<li>미국뉴욕대학교(NYU) 임플란트 연수과정 수료</li>
+											<li>미국임플란트학회(AAID) 임플란트 연수과정 수료</li>
+											<li>미국임플란트학회(AAID) 정회원, 인정의</li>
+											<li>펜실베니아대학 신경치료(Upenn endo) 과정 수료</li>
+											<li>미국치과의사협회 AGD 정회원</li>
+											<li>연세대학교 치과대학 임플란트 AGD과정 수료</li>
+										</ul>
+									</div>
+								</a>
+							</div>
+							<div class="swiper-slide">
+								<a href="/ds/staff#sta02">
+									<div class="img">
+										<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/staff02.png" alt="">
+										<i>
+											의료진 소개<br>
+											→
+										</i>
+									</div>
+									<div class="txt" data-role="target">
+										<div class="name-box">
+											<em>보철과</em>
+											<h3>박소형 원장<span>Park So-Hyung</span></h3>
+											<i><img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/career05.png" alt=""> </i>
+										</div>
+										<ul>
+											<li>부산대학교 치의학전문대학원 졸업</li>
+											<li>부산대학교 치과병원 인턴 수료</li>
+											<li>부산대학교 치과병원 치과보철과 수료</li>
+											<li>보건복지부 인증 전문의 자격 취득</li>
+											<li>김해안아픈숙면치과 부원장</li>
+										</ul>
+									</div>
+								</a>
+							</div>
+							<div class="swiper-slide">
+								<a href="/ds/staff#sta03">
+									<div class="img">
+										<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/staff03.png" alt="">
+										<i>
+											의료진 소개<br>
+											→
+										</i>
+									</div>
+									<div class="txt" data-role="target">
+										<div class="name-box">
+											<em>보존과</em>
+											<h3>강금하 원장<span>Kang Geum-ha</span></h3>
+											<i><img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/career03.png" alt=""> </i>
+										</div>
+										<ul>
+											<li>연세대학교 졸업</li>
+											<li>독일 국립뮌스터대학교 의과대학 치의학과 졸업</li>
+											<li>독일 치과의사 면허 취득</li>
+											<li>독일 함부르크대학교 의과대학 박사과정</li>
+											<li>통합치의학과 전문의 과정 수료</li>
+											<li>통합치의학과 전문의</li>
+										</ul>
+									</div>
+								</a>
+							</div>
+							<div class="swiper-slide">
+								<a href="/ds/staff#sta04">
+									<div class="img">
+										<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/staff04.png" alt="">
+										<i>
+											의료진 소개<br>
+											→
+										</i>
+									</div>
+									<div class="txt" data-role="target">
+										<div class="name-box">
+											<em>의식하진정치료</em>
+											<h3>내과 자문의사<span></span></h3>
+											<!-- <i><img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/career04.png" alt=""> </i> -->
+										</div>
+										<ul>
+											<li>해운대 백병원 전임의</li>
+											<li>내과 전문의</li>
+											<li>소화기내과 분과 전문의</li>
+											<li>의식하진정요법 교육과정 수료</li>
+										</ul>
+									</div>
+								</a>
+							</div>
+							<div class="swiper-slide">
+								<a href="/ds/staff#sta05">
+									<div class="img">
+										<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/staff05.png" alt="">
+										<i>
+											의료진 소개<br>
+											→
+										</i>
+									</div>
+									<div class="txt" data-role="target">
+										<div class="name-box">
+											<em>통합치의학과</em>
+											<h3>김도윤 원장<span>Kim Doyoon</span></h3>
+											<i><img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/career05.png" alt=""> </i>
+										</div>
+										<ul>
+											<li>연세대학교 졸업, 치의학 학사</li>
+											<li>고려대학교 의과대학 치의학 석사</li>
+											<li>통합치의학 전문의 과정 수료</li>
+											<li>보건복지부 인증 통합치의학과 전문의</li>
+											<li>대한치과보철학회 우수보철의</li>
+											<li>대한치과보철학회 정회원</li>
+											<li>대한치과턱관절협회 정회원</li>
+										</ul>
+									</div>
+								</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="control-box">
+			<div class="swiper-pagination"></div>
+		</div>
+	</section>
+	<section class="section04">
+		<div class="main-hgroup">
+			<h2>
+				통증없는 치료가 가능한 이유<br>
+				<strong>4단계 마취 & 진정 치료</strong>
+			</h2>
+		</div>
+		<div class="slide-box">
+			<div class="swiper loopSwiper">
+				<div class="swiper-wrapper">
+					<div class="swiper-slide item01">
+						<div class="img">
+							<div class="txt">
+								<h3>
+									충분한 상담,<br>
+									진정치료
+								</h3>
+								<p>
+									충분한 상담을 통한<br>
+									진정치료를 진행합니다.
+								</p>
+							</div>
+						</div>
+						<i>01</i>
+					</div>
+					<div class="swiper-slide even item02">
+						<div class="img">
+							<div class="txt">
+								<h3>
+									가글마취제
+								</h3>
+								<p>
+									스케일링 후의 시큰거림을<br>
+									줄여주는 간편한 가글형 마취제
+								</p>
+						</div>
+						</div>
+						<i>02</i>
+					</div>
+					<div class="swiper-slide item03">
+						<div class="img">
+							<div class="txt">
+								<h3>
+									도모마취연고
+								</h3>
+								<p>
+									마취주사/스케일링에 발생하는<br>
+									통증, 불편함을 줄여줍니다.
+								</p>
+							</div>
+						</div>
+						<i>03</i>
+					</div>
+					<div class="swiper-slide even item04">
+						<div class="img">
+							<div class="txt">
+								<h3>
+									극미세침 마취기
+								</h3>
+								<p>
+									Slowjec, 원터치로<br>
+									통증을 줄이는 무선 마취기
+								</p>
+							</div>
+						</div>
+						<i>04</i>
+					</div>
+					<div class="swiper-slide item01">
+						<div class="img">
+							<div class="txt">
+								<h3>
+									충분한 상담,<br>
+									진정치료
+								</h3>
+								<p>
+									충분한 상담을 통한<br>
+									진정치료를 진행합니다.
+								</p>
+							</div>
+						</div>
+						<i>01</i>
+					</div>
+					<div class="swiper-slide even item02">
+						<div class="img">
+							<div class="txt">
+								<h3>
+									가글마취제
+								</h3>
+								<p>
+									스케일링 후의 시큰거림을<br>
+									줄여주는 간편한 가글형 마취제
+								</p>
+							</div>
+						</div>
+						<i>02</i>
+					</div>
+					<div class="swiper-slide item03">
+						<div class="img">
+							<div class="txt">
+								<h3>
+									도모마취연고
+								</h3>
+								<p>
+									마취주사/스케일링에 발생하는<br>
+									통증, 불편함을 줄여줍니다.
+								</p>
+							</div>
+						</div>
+						<i>03</i>
+					</div>
+					<div class="swiper-slide even item04">
+						<div class="img">
+							<div class="txt">
+								<h3>
+									극미세침 마취기
+								</h3>
+								<p>
+									Slowjec, 원터치로<br>
+									통증을 줄이는 무선 마취기
+								</p>
+							</div>
+						</div>
+						<i>04</i>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+	<section class="section05">
+		<div class="layout">
+			<div class="main-hgroup">
+				<h2>
+					실력은 <strong>정성</strong>입니다.
+				</h2>
+				<p>
+					모든 환자의 상태에 맞춰 섬세하고 안전한 치료를 약속 드립니다.
+				</p>
+			</div>
+			<h3>
+				Dental treatment
+			</h3>
+			<div class="slide-box">
+				<div class="swiper stepSwiper">
+					<div class="swiper-wrapper">
+						<div class="swiper-slide">
+							<div class="inner">
+								<div class="img">
+									<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/point01img.png" alt="">
+								</div>
+								<div class="txt-box">
+									<h4>무섭지 않은 치과</h4>
+									<p>
+										통증없는 진료를 추구합니다.<br>
+										치과에 대한 두려움을 없이 안전하게 치료합니다.
+									</p>
+								</div>
+							</div>
+						</div>
+						<div class="swiper-slide">
+							<div class="inner">
+								<div class="img">
+									<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/point02img.png" alt="">
+								</div>
+								<div class="txt-box">
+									<h4>상담부터 수술까지</h4>
+									<p>
+										대표원장이 상담부터 치료까지 전 과정을<br>
+										직접 책임지고 진료합니다.
+									</p>
+								</div>
+							</div>
+						</div>
+						<div class="swiper-slide">
+							<div class="inner">
+								<div class="img">
+									<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/point03img.png" alt="">
+								</div>
+								<div class="txt-box">
+									<h4>충분한 시간 투자</h4>
+									<p>
+										1일 3수술로 환자 한 분 한 분에게<br>
+										맞춤형 집중 진료합니다.
+									</p>
+								</div>
+							</div>
+						</div>
+						<div class="swiper-slide">
+							<div class="inner">
+								<div class="img">
+									<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/point04img.png" alt="">
+								</div>
+								<div class="txt-box">
+									<h4>내과전문의 협진진료</h4>
+									<p>
+										전문 진료 협의를 통해 정확한 진단과<br>
+										안전한 시술 환경을 제공합니다.
+									</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="control-box">
+					<div class="swiper-pagination"></div>
+				</div>
+			</div>
+		</div>
+	</section>
+	<section class="section06">
+		<div class="main-hgroup">
+			<h2>고난이도 진료 <strong>[결과]로 증명</strong>합니다.</h2>
+			<p>경험이 만든 실력, 다양한 치료 사례를 직접 눈으로 확인하세요.</p>
+		</div>
+		<div class="slide-box">
+			<div class="flex-box">
+				<div>
+					<div id="slider1"></div>
+					<p>라미네이트 실제 치료 사례 Before & After</p>
+				</div>
+				<div>
+					<div id="slider2"></div>
+					<p>
+						60대 디지털 임플란트 치료전, 치료후
+					</p>
+				</div>
+			</div>
+			<div class="txt-box">
+				<p>← 화살표 아이콘을 클릭한 상태에서 좌우로 움직여 보세요. →</p>
+				<span>※ 본 이미지는 다솜치과 실제 환자의 사례 이므로 무단사용 및 도용을 금지합니다.</span>
+			</div>
+		</div>
+		<div class="box">
+			<div class="txt">
+				<h3>
+					<strong>3D CT</strong> · 구강스캐너<br>
+					디지털 가이드를 활용한<br>
+					<strong>맞춤 임플란트</strong>
+				</h3>
+				<p>
+					통증 걱정 없는 D.S. 치과에서, 정확한 진단과 정밀한 시술로<br>
+					더 빠르고, 더 안전하게, 더 오래가는 임플란트를 만나보세요.
+				</p>
+				<div class="btn">
+					<a href="/digital/implant">
+						임플란트<br>
+						→
+					</a>
+					<span></span>
+				</div>
+			</div>
+			<div class="img">
+				<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/sec06_img01.png" alt="">
+			</div>
+		</div>
+		<div class="box case2">
+			<div class="img">
+				<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/sec06_img02.png" alt="">
+			</div>
+			<div class="txt">
+				<h3>
+					임플란트, 틀니, 라미네이트 등<br>
+					고난이도 진료 경험이 풍부한<br>
+					의료진이 함께합니다.
+				</h3>
+				<p>
+					임플란트, 틀니, 라미네이트 등 어려운 치료도 D.S. 치과는 다릅니다.
+				</p>
+				<div class="btn">
+					<a href="/ds/staff">
+						의료진소개<br>
+						→
+					</a>
+					<span></span>
+				</div>
+			</div>
+		</div>
+		<div class="review-box">
+			<div class="txt">
+				<h3>
+					10년 이상 한자리에서,<br>
+					변함없이 신뢰받는 치과
+				</h3>
+				<p>
+					D.S 치과는 부산 연제구 최고 평점을 기록하며<br>
+					수많은 환자들이 편리한 접근성과<br>
+					수준 높은 진료를 인정해주셨습니다.
+				</p>
+				<div class="badge">
+					<i>
+						<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/badge02.png" alt="">
+					</i>
+					<i>
+						<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/badge03.png" alt="">
+					</i>
+				</div>
+			</div>
+			<div class="slide-box2">
+				<div class="swiper reviewSwiper">
+					<div class="swiper-wrapper">
+						<div class="swiper-slide">
+							<a href="#">
+								<div class="top-cont">
+									<div class="star">
+										<i>
+											<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/star5.svg" alt="">
+										</i>
+										<span>5.0</span>
+									</div>
+									<em>라미네이터 후기</em>
+								</div>
+								<h3>
+									불편함에서 벗어나<br>
+									자유로워졌어요.
+								</h3>
+								<p>
+									지인 추천받아 D.S. 다솜치과에서 원장님을 만났습니다.
+									이야기를 최대한 편하게 해주시려고 느낌을 받았어요!
+									친절하게 아프지 않게 과잉진료없이 봐주셔서 감사해요.
+									앞으로도 잘 부탁드립니다. 😆
+								</p>
+							</a>
+						</div>
+						<div class="swiper-slide">
+							<a href="#">
+								<div class="top-cont">
+									<div class="star">
+										<i>
+											<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/star5.svg" alt="">
+										</i>
+										<span>5.0</span>
+									</div>
+									<em>라미네이터 후기</em>
+								</div>
+								<h3>
+									불편함에서 벗어나<br>
+									자유로워졌어요.
+								</h3>
+								<p>
+									지인 추천받아 D.S. 다솜치과에서 원장님을 만났습니다.
+									이야기를 최대한 편하게 해주시려고 느낌을 받았어요!
+									친절하게 아프지 않게 과잉진료없이 봐주셔서 감사해요.
+									앞으로도 잘 부탁드립니다. 😆
+								</p>
+							</a>
+						</div>
+						<div class="swiper-slide">
+							<a href="#">
+								<div class="top-cont">
+									<div class="star">
+										<i>
+											<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/star5.svg" alt="">
+										</i>
+										<span>5.0</span>
+									</div>
+									<em>라미네이터 후기</em>
+								</div>
+								<h3>
+									불편함에서 벗어나<br>
+									자유로워졌어요.
+								</h3>
+								<p>
+									지인 추천받아 D.S. 다솜치과에서 원장님을 만났습니다.
+									이야기를 최대한 편하게 해주시려고 느낌을 받았어요!
+									친절하게 아프지 않게 과잉진료없이 봐주셔서 감사해요.
+									앞으로도 잘 부탁드립니다. 😆
+								</p>
+							</a>
+						</div>
+						<div class="swiper-slide">
+							<a href="#">
+								<div class="top-cont">
+									<div class="star">
+										<i>
+											<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/star5.svg" alt="">
+										</i>
+										<span>5.0</span>
+									</div>
+									<em>라미네이터 후기</em>
+								</div>
+								<h3>
+									불편함에서 벗어나<br>
+									자유로워졌어요.
+								</h3>
+								<p>
+									지인 추천받아 D.S. 다솜치과에서 원장님을 만났습니다.
+									이야기를 최대한 편하게 해주시려고 느낌을 받았어요!
+									친절하게 아프지 않게 과잉진료없이 봐주셔서 감사해요.
+									앞으로도 잘 부탁드립니다. 😆
+								</p>
+							</a>
+						</div>
+						<div class="swiper-slide">
+							<a href="#">
+								<div class="top-cont">
+									<div class="star">
+										<i>
+											<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/star5.svg" alt="">
+										</i>
+										<span>5.0</span>
+									</div>
+									<em>라미네이터 후기</em>
+								</div>
+								<h3>
+									불편함에서 벗어나<br>
+									자유로워졌어요.
+								</h3>
+								<p>
+									지인 추천받아 D.S. 다솜치과에서 원장님을 만났습니다.
+									이야기를 최대한 편하게 해주시려고 느낌을 받았어요!
+									친절하게 아프지 않게 과잉진료없이 봐주셔서 감사해요.
+									앞으로도 잘 부탁드립니다. 😆
+								</p>
+							</a>
+						</div>
+
+					</div>
+				</div>
+				<div class="control-box">
+					<div class="swiper-pagination"></div>
+				</div>
+			</div>
+		</div>
+	</section>
+	<section class="section07">
+		<div class="column-box">
+			<div class="txt">
+				<h3>
+					Doctor Column<br>
+					D.S 다솜치과 칼럼
+				</h3>
+				<p>
+					다양한 치아 정보를 쉽게 이해할 수 있도록<br>
+					제공하는 D.S 다솜치과의 칼럼입니다.
+				</p>
+				<a href="/bbs/list/column">
+					치료사례<br>
+					→
+				</a>
+			</div>
+			<div class="slide-box">
+				<div class="swiper columnSwiper">
+					<div class="swiper-wrapper">
+<?php
+if (count((array)$board_data["idx"]) > 0) {
+	for($i=0; $i < count((array)$board_data["idx"]); $i++) {
+?>
+						<div class="swiper-slide">
+							<a href="/bbs/view/column?idx=<?php echo $board_data["idx"][$i]; ?>">
+								<em>Doctor Column</em>
+								<h3>
+									<?php echo $board_data["subject"][$i]; ?>
+								</h3>
+								<p>
+									<?php echo get_plain_text_preview($board_data["content"][$i], 140); ?>
+								</p>
+							</a>
+						</div>
+<?php
+	}
+}
+?>
+					</div>
+				</div>
+				<div class="control-box">
+					<div class="swiper-pagination"></div>
+				</div>
+			</div>
+		</div>
+	</section>
+	<section class="section08">
+		<div class="main-hgroup">
+			<h2>섬세하고 <strong>안전한 치료</strong></h2>
+			<p>모든 환자의 상태에 맞춰 섬세하고 안전한 치료를 약속 드립니다.</p>
+		</div>
+		<div class="box">
+			<div class="cont1">
+				<h3>
+					치료의 끝이 아닌,<br>
+					치아를 오래 유지하는 것이<br>
+					목표입니다.
+				</h3>
+				<p>
+					한 번의 치료로 끝나는 것이 아니라 장기적인 치아 건강을<br>
+					고려한 치료 계획을 제안합니다.
+				</p>
+				<div class="b-cont">
+					<ul>
+						<li>
+							최소한의<br>
+							치아삭제
+						</li>
+						<li>
+							자연치아<br>
+							보존치료
+						</li>
+						<li>
+							치아와<br>
+							잇몸치료
+						</li>
+					</ul>
+					<a href="/digital/program">
+						사후관리<br>
+						→
+					</a>
+				</div>
+			</div>
+			<div class="cont2">
+				<h3>
+					<strong>내과전문의 자문을 통한 진료</strong><br>
+					전신 질환, 고연령 환자에게<br>
+					더욱 섬세한 치료가 가능합니다.
+				</h3>
+				<ul class="chk-list">
+					<li>전신질환 환자 진료</li>
+					<li>고연령 환자 진료</li>
+					<li>치과의 두려움을 줄여주는 진료</li>
+				</ul>
+			</div>
+		</div>
+	</section>
+	<section class="section09">
+		<div class="main-hgroup">
+			<h2>
+				연구하는 의료진<br>
+				<strong>D.S. 치과는 다릅니다.</strong>
+			</h2>
+			<p>더 정밀하게, 더 안전하게, 더 오래 가는 치료를 위해</p>
+		</div>
+		<div class="box">
+			<div class="layout">
+				<div class="cont1">
+					<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/sec09_img01.png" alt="">
+				</div>
+				<div class="cont2">
+					<h3>
+						국내외 학회 발표 참여와<br>
+						연구 활동을 지속하며<br>
+						<strong>치료의 수준을 높이고 있습니다.</strong>
+					</h3>
+					<ul>
+						<li>
+							<figure>
+								<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/sec09_img02.png" alt="">
+								<figcaption>
+									<strong>디오임플란트 지정</strong><br>
+									우수임플란트 시술병원
+								</figcaption>
+							</figure>
+						</li>
+						<li>
+							<figure>
+								<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/sec09_img03.png" alt="">
+								<figcaption>
+									<strong>오스템임플란트</strong><br>
+									연구자문치과
+								</figcaption>
+							</figure>
+						</li>
+						<li>
+							<figure>
+								<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/sec09_img04.png" alt="">
+								<figcaption>
+									<strong>아시아보철학회</strong><br>
+									우수발표상
+								</figcaption>
+							</figure>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</section>
+	<section class="section10">
+		<div class="box">
+			<div class="cont1">
+				<h3>
+					치료의 완성도는 의료진의<br>
+					<Strong>경험과 연구</Strong>에서 비롯됩니다.
+				</h3>
+				<p>
+					미국 뉴욕대학교(NYU) 임플란트 과정 수료 및 미국 임플란트 학회(AAID) 인정의<br>
+					자격을 보유한 인정받는 신운철 대표원장과 실력자 4명이 함께 합니다.
+				</p>
+				<ul>
+					<li>
+						<figure>
+							<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/sec10_img01.png" alt="">
+							<figcaption>
+								미국임플란트 학회<br>
+								인정의 과정
+							</figcaption>
+						</figure>
+					</li>
+					<li>
+						<figure>
+							<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/sec10_img02.png" alt="">
+							<figcaption>
+								미국임플란트 학회<br>
+								임플란트 연수
+							</figcaption>
+						</figure>
+					</li>
+					<li>
+						<figure>
+							<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/sec10_img03.png" alt="">
+							<figcaption>
+								미국임플란트 학회<br>
+								정회원
+							</figcaption>
+						</figure>
+					</li>
+				</ul>
+			</div>
+			<div class="cont2">
+				<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/sec10_img04.png" alt="">
+			</div>
+		</div>
+	</section>
+	<section class="section11">
+		<div class="box">
+			<div class="layout">
+				<div class="cont1">
+					<em>환자를 위한 연구</em>
+					<h3>
+						<strong>논문으로 인정</strong> 받는<br>
+						D.S. 다솜치과
+					</h3>
+					<p>
+						임플란트를 통해 의치의 안정성을 얻을 수 있었으며...<br>
+						- 대한치과보철학회지
+					</p>
+
+				</div>
+				<div class="cont2">
+					<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/sec11_img01.png" alt="">
+				</div>
+			</div>
+		</div>
+	</section>
+	<section class="section12">
+		<div class="main-hgroup">
+			<h2>
+				150평 프리미엄 공간<br>
+				<strong>연제구 중심, 편리한 접근성</strong>
+			</h2>
+			<p>
+				환자 중심의 편안한 동선 설계로 편안함과 만족을 최우선으로 생각합니다.
+			</p>
+		</div>
+		<div class="slide-box">
+			<div class="swiper photoSwiper">
+				<div class="swiper-wrapper">
+					<div class="swiper-slide">
+						<picture>
+							<source media="(max-width:768px)" srcset="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/m_photo01.png">
+							<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/photo01.png" alt="">
+						</picture>
+					</div>
+					<div class="swiper-slide">
+						<picture>
+							<source media="(max-width:768px)" srcset="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/m_photo02.png">
+							<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/photo02.png" alt="">
+						</picture>
+					</div>
+					<div class="swiper-slide">
+						<picture>
+							<source media="(max-width:768px)" srcset="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/m_photo03.png">
+							<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/photo03.png" alt="">
+						</picture>
+					</div>
+					<div class="swiper-slide">
+						<picture>
+							<source media="(max-width:768px)" srcset="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/m_photo04.png">
+							<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/photo04.png" alt="">
+						</picture>
+					</div>
+					<div class="swiper-slide">
+						<picture>
+							<source media="(max-width:768px)" srcset="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/m_photo05.png">
+							<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/photo05.png" alt="">
+						</picture>
+					</div>
+					<div class="swiper-slide">
+						<picture>
+							<source media="(max-width:768px)" srcset="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/m_photo06.png">
+							<img src="<?php echo CFG_PUBLIC_PATH; ?>/images<?php echo CFG_DESIGN_TYPE; ?>/main/photo06.png" alt="">
+						</picture>
+					</div>
+				</div>
+				<div class="control">
+					<div class="swiper-pagination"></div>
+				</div>
+			</div>
+		</div>
+	</section>
+	<section class="section13">
+		<div class="box">
+			<div class="cont1">
+				<div class="inner">
+					<h3>
+						<strong>부산 연제구 중앙대로 1091, 9층</strong><br>
+						연산역 1번출구 바로 앞 건물<br>
+						9층에 위치합니다.
+					</h3>
+					<p>
+						* 주차는 건물 지하주차장을 이용하시면 됩니다.
+					</p>
+					<div class="btn-box">
+						<a href="https://naver.me/IGZwbAhc" target="_blank" class="btn01">
+							길찾기 N<br>
+							→
+						</a>
+						<a href="/ds/information" class="btn02">
+							진료시간<br>
+							+
+						</a>
+					</div>
+					<h4>진료안내</h4>
+					<dl class="dl-type1">
+						<dt>월/수/금</dt>
+						<dd>9:30 - 19:00</dd>
+						<dt>화/목</dt>
+						<dd>9:30 - 20:30<em>야간진료</em></dd>
+						<dt>점심시간</dt>
+						<dd>13:00 - 14:00</dd>
+						<dt>토요일</dt>
+						<dd style="padding-bottom: 0;">9:30 - 13:30<span>(점심시간 없이 진료)</span></dd>
+					</dl>
+					<small>* 일요일 · 공휴일 휴진합니다.</small>
+				</div>
+			</div>
+			<div class="cont2">
+				<!-- * 카카오맵 - 지도퍼가기 -->
+				<!-- 1. 지도 노드 -->
+				<div id="daumRoughmapContainer1745386193255" class="root_daum_roughmap root_daum_roughmap_landing" style="width:100%;height:100%;"></div>
+
+				<!--
+					2. 설치 스크립트
+					* 지도 퍼가기 서비스를 2개 이상 넣을 경우, 설치 스크립트는 하나만 삽입합니다.
+				-->
+				<script charset="UTF-8" class="daum_roughmap_loader_script" src="https://ssl.daumcdn.net/dmaps/map_js_init/roughmapLoader.js"></script>
+
+				<!-- 3. 실행 스크립트 -->
+				<script charset="UTF-8">
+                    new daum.roughmap.Lander({
+                        "timestamp" : "1745386193255",
+                        "key" : "2nsvr",
+                    }).render();
+				</script>
+			</div>
+		</div>
+	</section>
+</main>
+
+<script>
+    var video = document.getElementById("videoSlide");
+
+    var swiper = new Swiper(".mainSwiper", {
+        slidesPerView: 1,
+        loop: true,
+	    speed:1200,
+        spaceBetween: 5,
+        autoplay: {
+            delay: 3000,
+            disableOnInteraction: false,
+        },
+        pagination: {
+            el: ".section01 .swiper-pagination",
+            type: "fraction",
+        },
+        on: {
+            slideChangeTransitionEnd: function () {
+                const currentSlide = swiper.slides[swiper.activeIndex];
+                const videoEl = currentSlide.querySelector("video");
+
+                if (videoEl) {
+                    // 자동 슬라이드 멈추고 영상 재생
+                    swiper.autoplay.stop();
+                    videoEl.currentTime = 0;
+                    videoEl.play();
+
+                    // 영상 종료 시 슬라이드 넘기고 autoplay 재개
+                    videoEl.onended = () => {
+                        swiper.slideNext();
+                        swiper.autoplay.start();
+                    };
+                }
+            },
+        },
+    });
+
+    var pagingSwiper = new Swiper(".mainSwiper", {
+        loop: true,
+        speed:1200,
+        pagination: {
+            el: ".section01 .swiper-pagination2",
+        },
+    });
+
+    swiper.controller.control = pagingSwiper;
+
+
+    var staffSwiper = new Swiper('.staffSwiper', {
+        loop: true,
+        speed: 1400,
+        spaceBetween: 50,
+        slidesPerView: "auto",
+        //centeredSlides: true,
+        pagination: {
+            el: '.section03 .swiper-pagination',
+            clickable: true,
+        },
+        autoplay: {
+            delay: 3500,
+            disableOnInteraction: false,
+        },
+        on: {
+            slideChange: function () {
+                const activeSlide = this.slides[this.activeIndex]; // ✅ `this` 사용
+                const htmlContent = $(activeSlide).find('[data-role="target"]').html();
+
+
+                $('.section03 .txt-box').fadeOut('fast', function () {
+                    $(this).html(htmlContent).fadeIn('fast');
+                });
+            }
+        }
+    });
+
+
+    var stepSwiper = new Swiper(".stepSwiper", {
+        slidesPerView: 1,
+        loop: true,
+        speed:1200,
+        spaceBetween: 5,
+        centeredSlides: true,
+        autoplay: {
+            delay: 3000,
+            disableOnInteraction: false,
+        },
+        pagination: {
+            el: ".section05 .swiper-pagination",
+        },
+        breakpoints: {
+
+            768: {
+                slidesPerView: 2,  //브라우저가 768보다 클 때
+                spaceBetween: 20,
+            },
+            1024: {
+                slidesPerView: 3,  //브라우저가 1024보다 클 때
+                spaceBetween: 60,
+            },
+        },
+    });
+
+    var loopSwiper = new Swiper(".loopSwiper", {
+        slidesPerView: "auto",
+        speed: 5000,
+        loop: true,
+        loopAdditionalSlides: 1,
+        navigation: {
+            nextEl: ".swiper-button-next",
+            prevEl: ".swiper-button-prev",
+        },
+        autoplay: {
+            delay: 0, //add
+            disableOnInteraction: false,
+        },
+    });
+
+    new SliderBar({
+        el: '#slider1',
+        beforeImg: '/_public/images2/main/before_img01.png',
+        afterImg: './_public/images2/main/before_img02.png',
+        width: '100%',
+        height: '400px'
+    });
+
+    new SliderBar({
+        el: '#slider2',
+        beforeImg: '/_public/images2/main/before_img01.png',
+        afterImg: './_public/images2/main/before_img02.png',
+        width: '100%',
+        height: '400px'
+    });
+
+    var reviewSwiper = new Swiper(".reviewSwiper", {
+        slidesPerView:1,
+        loop: true,
+        speed:1200,
+        spaceBetween: 5,
+        autoplay: {
+            delay: 2500,
+            disableOnInteraction: false,
+        },
+        pagination: {
+            el: ".review-box .swiper-pagination",
+            type: "progressbar",
+        },
+
+        breakpoints: {
+
+            768: {
+                slidesPerView: 2,
+                spaceBetween: 20,
+            },
+            1024: {
+                slidesPerView: "auto",
+                spaceBetween: 30,
+            },
+        },
+    });
+
+    var columnSwiper = new Swiper(".columnSwiper", {
+        slidesPerView: 1,
+        loop: true,
+        speed:1200,
+        spaceBetween: 5,
+        autoplay: {
+            delay: 2500,
+            disableOnInteraction: false,
+        },
+        pagination: {
+            el: ".section07 .swiper-pagination",
+            type: "progressbar",
+        },
+        breakpoints: {
+
+            768: {
+                slidesPerView: 2,
+                spaceBetween: 20,
+            },
+            1024: {
+                slidesPerView: "auto",
+                spaceBetween: 30,
+            },
+        },
+    });
+
+    var photoSwiper = new Swiper(".photoSwiper", {
+        slidesPerView: 1,
+        loop: true,
+        speed:1200,
+        spaceBetween: 5,
+        autoplay: {
+            delay: 3000,
+            disableOnInteraction: false,
+        },
+        pagination: {
+            el: ".section12 .swiper-pagination",
+        },
+    });
+
+</script>

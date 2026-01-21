@@ -1,0 +1,2653 @@
+<?php
+//게시판의 모델파일
+class board
+{
+	// 게시판 설정배열
+	protected $bbs_cfg;
+	protected $bbs_id;
+
+	// 게시물 변수
+	protected $bbs_mode;
+	protected $bbs_param;
+	protected $bbs_notice;
+	protected $bbs_data;
+	protected $bbs_rownum;
+	protected $bbs_cnt;
+
+	// 댓글 변수
+	protected $cmt_param;
+	protected $cmt_list;
+	protected $cmt_cnt;
+
+	/**
+	 * 게시판 설정 로그등록
+	 * @param Int  $board_info_idx 게시판 설정 PK
+	 * @param Array $data 등록 데이터 배열
+	 * @param Array $processData 처리단에서 전달받은 데이터 배열
+	 */
+	public function log_boardInfoActionLog($board_info_idx, $data=array(), $processData=array())
+	{
+		global $_SERVER, $cls_db;
+
+		// 로그 데이터 추출
+		$cls_db->get_log_data();
+
+		$sql = "INSERT INTO `board_info_action_log` SET";
+		$sql .= " `board_info_idx`=".$board_info_idx.",";
+		$sql .= " `action_result`='".$data["action_result"]."',";
+		$sql .= " `form_page_url`='".$_SERVER["HTTP_REFERER"]."',";
+		$sql .= " `action_page_url`='".$_SERVER["REQUEST_URI"]."',";
+		$sql .= " `session_data`='".$cls_db->session_data."',";
+		$sql .= " `cookie_data`='".$cls_db->cookie_data."',";
+		$sql .= " `get_data`='".$cls_db->get_data."',";
+		$sql .= " `post_data`='".$cls_db->post_data."',";
+		$sql .= " `data_array`='".json_encode($processData, JSON_UNESCAPED_UNICODE)."',";
+		$sql .= " `add_date`=NOW(),";
+		$sql .= " `add_id`='".$data["add_id"]."',";
+		$sql .= " `add_ip`='".$data["add_ip"]."'";
+		$res = $cls_db->sql_query($sql);
+		if($res === false)
+		{
+			$cls_db->return_text = $data["action_result"]." 로그 저장에 실패 했습니다.";
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * 파라미터 값으로 WHERE 조건문 생성
+	 * @param Array $param 검색 데이터 배열
+	 */
+	private function get_infoSubSql($param=array())
+	{
+		$subsql = " WHERE 1=1";
+		if(isset($param["s_idx"])) $subsql .= " AND `idx`=".$param["s_idx"];
+		if(isset($param["s_boardId"])) $subsql .= " AND `board_id`='".$param["s_boardId"]."'";
+		if(isset($param["s_boardType"])) $subsql .= " AND `board_type`='".$param["s_boardType"]."'";
+		if(isset($param["s_boardName"])) $subsql .= " AND `board_name`='".$param["s_boardName"]."'";
+		if(isset($param["s_useAdd"])) $subsql .= " AND `use_add`='".$param["s_useAdd"]."'";
+		if(isset($param["s_useEdit"])) $subsql .= " AND `use_edit`='".$param["s_useEdit"]."'";
+		if(isset($param["s_useView"])) $subsql .= " AND `use_view`='".$param["s_useView"]."'";
+		if(isset($param["s_useDel"])) $subsql .= " AND `use_del`='".$param["s_useDel"]."'";
+		if(isset($param["s_useNotice"])) $subsql .= " AND `use_notice`='".$param["s_useNotice"]."'";
+		if(isset($param["s_useSecret"])) $subsql .= " AND `use_secret`='".$param["s_useSecret"]."'";
+		if(isset($param["s_useComment"])) $subsql .= " AND `use_comment`='".$param["s_useComment"]."'";
+		if(isset($param["s_commentAddGrade"])) $subsql .= " AND `comment_add_grade`='".$param["s_commentAddGrade"]."'";
+		if(isset($param["s_commentListGrade"])) $subsql .= " AND `comment_list_grade`='".$param["s_commentListGrade"]."'";
+		if(isset($param["s_commentReplyGrade"])) $subsql .= " AND `comment_reply_grade`='".$param["s_commentReplyGrade"]."'";
+		if(isset($param["s_useEditor"])) $subsql .= " AND `use_editor`='".$param["s_useEditor"]."'";
+		if(isset($param["s_selectEditor"])) $subsql .= " AND `select_editor`='".$param["s_selectEditor"]."'";
+		if(isset($param["s_useHtml"])) $subsql .= " AND `use_html`='".$param["s_useHtml"]."'";
+		if(isset($param["s_readImgWidth"])) $subsql .= " AND `read_img_width`=".$param["s_readImgWidth"];
+		if(isset($param["s_useFile"])) $subsql .= " AND `use_file`='".$param["s_useFile"]."'";
+		if(isset($param["s_useFileNum"])) $subsql .= " AND `use_file_num`=".$param["s_useFileNum"];
+		if(isset($param["s_maxFileSize"])) $subsql .= " AND `max_file_size`=".$param["s_maxFileSize"];
+		if(isset($param["s_useHeader"])) $subsql .= " AND `use_header`='".$param["s_useHeader"]."'";
+		if(isset($param["s_headerHtml"])) $subsql .= " AND `header_html`='".$param["s_headerHtml"]."'";
+		if(isset($param["s_useFooter"])) $subsql .= " AND `use_footer`='".$param["s_useFooter"]."'";
+		if(isset($param["s_footerHtml"])) $subsql .= " AND `footer_html`='".$param["s_footerHtml"]."'";
+		if(isset($param["s_useAutoWriteCheck"])) $subsql .= " AND `use_auto_write_check`='".$param["s_useAutoWriteCheck"]."'";
+		if(isset($param["s_useForbiddenIp"])) $subsql .= " AND `use_forbidden_ip`='".$param["s_useForbiddenIp"]."'";
+		if(isset($param["s_forbiddenIp"])) $subsql .= " AND `forbidden_ip`='".$param["s_forbiddenIp"]."'";
+		if(isset($param["s_forbiddenIpType"])) $subsql .= " AND `forbidden_ip_type`='".$param["s_forbiddenIpType"]."'";
+		if(isset($param["s_listGrade"])) $subsql .= " AND `list_grade`='".$param["s_listGrade"]."'";
+		if(isset($param["s_addGrade"])) $subsql .= " AND `add_grade`='".$param["s_addGrade"]."'";
+		if(isset($param["s_editGrade"])) $subsql .= " AND `edit_grade`='".$param["s_editGrade"]."'";
+		if(isset($param["s_delGrade"])) $subsql .= " AND `del_grade`='".$param["s_delGrade"]."'";
+		if(isset($param["s_viewGrade"])) $subsql .= " AND `view_grade`='".$param["s_viewGrade"]."'";
+		if(isset($param["s_newArticleDay"])) $subsql .= " AND `new_article_day`=".$param["s_newArticleDay"];
+		if(isset($param["s_forbiddenWord"])) $subsql .= " AND `forbidden_word`='".$param["s_forbiddenWord"]."'";
+		if(isset($param["s_listMax"])) $subsql .= " AND `list_max`=".$param["s_listMax"];
+		if(isset($param["s_pageMax"])) $subsql .= " AND `page_max`=".$param["s_pageMax"];
+		if(isset($param["s_savedTitleImg"])) $subsql .= " AND `saved_title_img`='".$param["s_savedTitleImg"]."'";
+		if(isset($param["s_uploadedTitleImg"])) $subsql .= " AND `uploaded_title_img`='".$param["s_uploadedTitleImg"]."'";
+		if(isset($param["s_addDate"])) $subsql .= " AND `add_date`='".$param["s_addDate"]."'";
+		if(isset($param["s_addId"])) $subsql .= " AND `add_id`='".$param["s_addId"]."'";
+		if(isset($param["s_addIp"])) $subsql .= " AND `add_ip`='".$param["s_addIp"]."'";
+		if(isset($param["s_editDate"])) $subsql .= " AND `edit_date`='".$param["s_editDate"]."'";
+		if(isset($param["s_editId"])) $subsql .= " AND `edit_id`='".$param["s_editId"]."'";
+		if(isset($param["s_editIp"])) $subsql .= " AND `edit_ip`='".$param["s_editIp"]."'";
+		if(isset($param["s_delFlag"])) $subsql .= " AND `del_flag`='".$param["s_delFlag"]."'";
+		if(isset($param["s_delDate"])) $subsql .= " AND `del_date`='".$param["s_delDate"]."'";
+		if(isset($param["s_delId"])) $subsql .= " AND `del_id`='".$param["s_delId"]."'";
+		if(isset($param["s_delIp"])) $subsql .= " AND `del_ip`='".$param["s_delIp"]."'";
+
+		return $subsql;
+	}
+
+	/**
+	 * 게시판 설정 목록
+	 * @param Int $paging 페이지 번호
+	 * @param Int $list_max 페이지당 출력할 게시물 수
+	 * @param Array $param 검색 데이터 배열
+	 * @param String $field 불러올 컬럼
+	 */
+	public function get_pList_boardInfo($paging, $list_max, $param=array(), $field="*")
+	{
+		global $cls_db;
+
+		$subsql = $this->get_infoSubSql($param);
+
+		$cnt = $cls_db->sql_fetch("SELECT IF(COUNT(*)>0, COUNT(*), 0) AS `cnt` FROM `board_info`".$subsql);
+		$cls_db->total = $cnt["cnt"];
+
+		$paging_start = ($paging - 1) * $list_max;
+		$cls_db->rownum = $cls_db->total - $paging_start;
+
+		if(!empty($param["orderby"]))
+		{
+			$orderby = " ORDER BY ".$param["orderby"];
+		}
+		else
+		{
+			$orderby = " ORDER BY `add_date` DESC";
+		}
+
+		return $cls_db->sql_fetch_array("SELECT ".$field." FROM `board_info`".$subsql.$orderby." LIMIT ".$paging_start.", ".$list_max);
+	}
+
+	/**
+	 * 게시판 설정 목록
+	 * @param Array $param 검색 데이터 배열
+	 * @param String $field 불러올 컬럼
+	 */
+	public function get_list_boardInfo($param=array(), $field="*")
+	{
+		global $cls_db;
+
+		$subsql = $this->get_infoSubSql($param);
+
+		if(!empty($param["orderby"]))
+		{
+			$orderby = " ORDER BY ".$param["orderby"];
+		}
+		else
+		{
+			$orderby = " ORDER BY `add_date` DESC";
+		}
+
+		return $cls_db->sql_fetch_array("SELECT ".$field." FROM `board_info`".$subsql.$orderby);
+	}
+
+	/**
+	 * 게시판 설정 상세
+	 * @param Int $board_info_idx 게시판 설정 PK
+	 * @param String $field 불러올 컬럼
+	 */
+	public function get_view_boardInfo($board_info_idx, $field="*")
+	{
+		global $cls_db;
+
+		return $cls_db->sql_fetch("SELECT ".$field." FROM `board_info` WHERE `idx`=".$board_info_idx);
+	}
+
+	/**
+	 * 게시판 설정 상세
+	 * @param Array $param 검색 데이터 배열
+	 * @param String $field 불러올 컬럼
+	 */
+	public function get_view_boardInfo_search($param=array(), $field="*")
+	{
+		global $cls_db;
+
+		$subsql = $this->get_infoSubSql($param);
+
+		if(!empty($param["orderby"]))
+		{
+			$orderby = " ORDER BY ".$param["orderby"];
+		}
+		else
+		{
+			$orderby = " ORDER BY `idx` ASC";
+		}
+
+		return $cls_db->sql_fetch("SELECT ".$field." FROM `board_info`".$subsql.$orderby." LIMIT 1");
+	}
+
+	/**
+	 * 게시판 설정 등록
+	 * @param Array $data 등록 데이터 배열
+	 */
+	public function add_boardInfo($data=array())
+	{
+		global $cls_db;
+
+		try
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_startTransaction();
+
+			$sql = "INSERT INTO `board_info` SET";
+			if(isset($data["board_id"])) $sql .= " `board_id`='".$data["board_id"]."',";
+			if(isset($data["board_type"])) $sql .= " `board_type`='".$data["board_type"]."',";
+			if(isset($data["board_name"])) $sql .= " `board_name`='".$data["board_name"]."',";
+			if(isset($data["use_add"])) $sql .= " `use_add`='".$data["use_add"]."',";
+			if(isset($data["use_edit"])) $sql .= " `use_edit`='".$data["use_edit"]."',";
+			if(isset($data["use_view"])) $sql .= " `use_view`='".$data["use_view"]."',";
+			if(isset($data["use_del"])) $sql .= " `use_del`='".$data["use_del"]."',";
+			if(isset($data["use_notice"])) $sql .= " `use_notice`='".$data["use_notice"]."',";
+			if(isset($data["use_secret"])) $sql .= " `use_secret`='".$data["use_secret"]."',";
+			if(isset($data["use_comment"])) $sql .= " `use_comment`='".$data["use_comment"]."',";
+			if(isset($data["comment_add_grade"])) $sql .= " `comment_add_grade`='".$data["comment_add_grade"]."',";
+			if(isset($data["comment_list_grade"])) $sql .= " `comment_list_grade`='".$data["comment_list_grade"]."',";
+			if(isset($data["comment_reply_grade"])) $sql .= " `comment_reply_grade`='".$data["comment_reply_grade"]."',";
+			if(isset($data["use_editor"])) $sql .= " `use_editor`='".$data["use_editor"]."',";
+			if(isset($data["select_editor"])) $sql .= " `select_editor`='".$data["select_editor"]."',";
+			if(isset($data["use_html"])) $sql .= " `use_html`='".$data["use_html"]."',";
+			if(isset($data["read_img_width"])) $sql .= " `read_img_width`=".$data["read_img_width"].",";
+			if(isset($data["use_file"])) $sql .= " `use_file`='".$data["use_file"]."',";
+			if(isset($data["use_file_num"])) $sql .= " `use_file_num`=".$data["use_file_num"].",";
+			if(isset($data["max_file_size"])) $sql .= " `max_file_size`=".$data["max_file_size"].",";
+			if(isset($data["use_header"])) $sql .= " `use_header`='".$data["use_header"]."',";
+			if(isset($data["header_html"])) $sql .= " `header_html`='".$data["header_html"]."',";
+			if(isset($data["use_footer"])) $sql .= " `use_footer`='".$data["use_footer"]."',";
+			if(isset($data["footer_html"])) $sql .= " `footer_html`='".$data["footer_html"]."',";
+			if(isset($data["use_auto_write_check"])) $sql .= " `use_auto_write_check`='".$data["use_auto_write_check"]."',";
+			if(isset($data["use_forbidden_ip"])) $sql .= " `use_forbidden_ip`='".$data["use_forbidden_ip"]."',";
+			if(isset($data["forbidden_ip"])) $sql .= " `forbidden_ip`='".$data["forbidden_ip"]."',";
+			if(isset($data["forbidden_ip_type"])) $sql .= " `forbidden_ip_type`='".$data["forbidden_ip_type"]."',";
+			if(isset($data["list_grade"])) $sql .= " `list_grade`='".$data["list_grade"]."',";
+			if(isset($data["add_grade"])) $sql .= " `add_grade`='".$data["add_grade"]."',";
+			if(isset($data["edit_grade"])) $sql .= " `edit_grade`='".$data["edit_grade"]."',";
+			if(isset($data["del_grade"])) $sql .= " `del_grade`='".$data["del_grade"]."',";
+			if(isset($data["view_grade"])) $sql .= " `view_grade`='".$data["view_grade"]."',";
+			if(isset($data["new_article_day"])) $sql .= " `new_article_day`=".$data["new_article_day"].",";
+			if(isset($data["forbidden_word"])) $sql .= " `forbidden_word`='".$data["forbidden_word"]."',";
+			if(isset($data["list_max"])) $sql .= " `list_max`=".$data["list_max"].",";
+			if(isset($data["page_max"])) $sql .= " `page_max`=".$data["page_max"].",";
+			if(isset($data["saved_title_img"])) $sql .= " `saved_title_img`='".$data["saved_title_img"]."',";
+			if(isset($data["uploaded_title_img"])) $sql .= " `uploaded_title_img`='".$data["uploaded_title_img"]."',";
+			if(isset($data["add_id"])) $sql .= " `add_id`='".$data["add_id"]."',";
+			if(isset($data["add_ip"])) $sql .= " `add_ip`='".$data["add_ip"]."',";
+			$sql .= " `add_date`=NOW()";
+			$res = $cls_db->sql_query($sql);
+			if($res === false)
+			{
+				throw new Exception("게시판 설정 등록에 실패 했습니다.");
+			}
+
+			$cls_db->latest_idx = mysqli_insert_id($cls_db->connect);
+
+			$res = $this->log_boardInfoActionLog($cls_db->getLatestIdx(), array(
+				"action_result"=>"게시판 설정 등록",
+				"add_id"=>$data["add_id"],
+				"add_ip"=>$data["add_ip"]
+			), $data);
+			if($res === false)
+			{
+				throw new Exception($cls_db->getReturnText());
+			}
+
+			if($data["transaction_flag"]===true) $cls_db->do_commit();
+		}
+		catch(Exception $e)
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_rollback();
+
+			$cls_db->return_text = $e->getMessage();
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * 게시판 설정 수정
+	 * @param Int $board_info_idx 게시판 설정 PK
+	 * @param Array $data 수정 데이터 배열
+	 */
+	public function edit_boardInfo($board_info_idx, $data=array())
+	{
+		global $cls_db;
+
+		try
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_startTransaction();
+
+			$sql = "UPDATE `board_info` SET";
+			if(isset($data["board_id"])) $sql .= " `board_id`='".$data["board_id"]."',";
+			if(isset($data["board_type"])) $sql .= " `board_type`='".$data["board_type"]."',";
+			if(isset($data["board_name"])) $sql .= " `board_name`='".$data["board_name"]."',";
+			if(isset($data["use_add"])) $sql .= " `use_add`='".$data["use_add"]."',";
+			if(isset($data["use_edit"])) $sql .= " `use_edit`='".$data["use_edit"]."',";
+			if(isset($data["use_view"])) $sql .= " `use_view`='".$data["use_view"]."',";
+			if(isset($data["use_del"])) $sql .= " `use_del`='".$data["use_del"]."',";
+			if(isset($data["use_notice"])) $sql .= " `use_notice`='".$data["use_notice"]."',";
+			if(isset($data["use_secret"])) $sql .= " `use_secret`='".$data["use_secret"]."',";
+			if(isset($data["use_comment"])) $sql .= " `use_comment`='".$data["use_comment"]."',";
+			if(isset($data["comment_add_grade"])) $sql .= " `comment_add_grade`='".$data["comment_add_grade"]."',";
+			if(isset($data["comment_list_grade"])) $sql .= " `comment_list_grade`='".$data["comment_list_grade"]."',";
+			if(isset($data["comment_reply_grade"])) $sql .= " `comment_reply_grade`='".$data["comment_reply_grade"]."',";
+			if(isset($data["use_editor"])) $sql .= " `use_editor`='".$data["use_editor"]."',";
+			if(isset($data["select_editor"])) $sql .= " `select_editor`='".$data["select_editor"]."',";
+			if(isset($data["use_html"])) $sql .= " `use_html`='".$data["use_html"]."',";
+			if(isset($data["read_img_width"])) $sql .= " `read_img_width`=".$data["read_img_width"].",";
+			if(isset($data["use_file"])) $sql .= " `use_file`='".$data["use_file"]."',";
+			if(isset($data["use_file_num"])) $sql .= " `use_file_num`=".$data["use_file_num"].",";
+			if(isset($data["max_file_size"])) $sql .= " `max_file_size`=".$data["max_file_size"].",";
+			if(isset($data["use_header"])) $sql .= " `use_header`='".$data["use_header"]."',";
+			if(isset($data["header_html"])) $sql .= " `header_html`='".$data["header_html"]."',";
+			if(isset($data["use_footer"])) $sql .= " `use_footer`='".$data["use_footer"]."',";
+			if(isset($data["footer_html"])) $sql .= " `footer_html`='".$data["footer_html"]."',";
+			if(isset($data["use_auto_write_check"])) $sql .= " `use_auto_write_check`='".$data["use_auto_write_check"]."',";
+			if(isset($data["use_forbidden_ip"])) $sql .= " `use_forbidden_ip`='".$data["use_forbidden_ip"]."',";
+			if(isset($data["forbidden_ip"])) $sql .= " `forbidden_ip`='".$data["forbidden_ip"]."',";
+			if(isset($data["forbidden_ip_type"])) $sql .= " `forbidden_ip_type`='".$data["forbidden_ip_type"]."',";
+			if(isset($data["list_grade"])) $sql .= " `list_grade`='".$data["list_grade"]."',";
+			if(isset($data["add_grade"])) $sql .= " `add_grade`='".$data["add_grade"]."',";
+			if(isset($data["edit_grade"])) $sql .= " `edit_grade`='".$data["edit_grade"]."',";
+			if(isset($data["del_grade"])) $sql .= " `del_grade`='".$data["del_grade"]."',";
+			if(isset($data["view_grade"])) $sql .= " `view_grade`='".$data["view_grade"]."',";
+			if(isset($data["new_article_day"])) $sql .= " `new_article_day`=".$data["new_article_day"].",";
+			if(isset($data["forbidden_word"])) $sql .= " `forbidden_word`='".$data["forbidden_word"]."',";
+			if(isset($data["list_max"])) $sql .= " `list_max`=".$data["list_max"].",";
+			if(isset($data["page_max"])) $sql .= " `page_max`=".$data["page_max"].",";
+			if(isset($data["saved_title_img"])) $sql .= " `saved_title_img`='".$data["saved_title_img"]."',";
+			if(isset($data["uploaded_title_img"])) $sql .= " `uploaded_title_img`='".$data["uploaded_title_img"]."',";
+			if(isset($data["edit_id"])) $sql .= " `edit_id`='".$data["edit_id"]."',";
+			if(isset($data["edit_ip"])) $sql .= " `edit_ip`='".$data["edit_ip"]."',";
+			if(isset($data["del_flag"])) $sql .= " `del_flag`='".$data["del_flag"]."',";
+			if(isset($data["del_date"])) $sql .= " `del_date`='".$data["del_date"]."',";
+			if(isset($data["del_id"])) $sql .= " `del_id`='".$data["del_id"]."',";
+			if(isset($data["del_ip"])) $sql .= " `del_ip`='".$data["del_ip"]."',";
+			$sql .= " `edit_date`=NOW()";
+			$sql .= " WHERE `idx`=".$board_info_idx;
+			$res = $cls_db->sql_query($sql);
+			if($res === false)
+			{
+				throw new Exception("게시판 설정 수정에 실패 했습니다.");
+			}
+
+			$res = $this->log_boardInfoActionLog($board_info_idx, array(
+				"action_result"=>"게시판 설정 수정",
+				"add_id"=>$data["edit_id"],
+				"add_ip"=>$data["edit_ip"]
+			), $data);
+			if($res === false)
+			{
+				throw new Exception($cls_db->getReturnText());
+			}
+
+			if($data["transaction_flag"]===true) $cls_db->do_commit();
+		}
+		catch(Exception $e)
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_rollback();
+
+			$cls_db->return_text = $e->getMessage();
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * 게시판 설정 삭제
+	 * @param Int $board_info_idx 게시판 설정 PK
+	 * @param Array $data 삭제 데이터 배열
+	 */
+	public function del_boardInfo($board_info_idx, $data=array())
+	{
+		global $cls_db;
+
+		try
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_startTransaction();
+
+			$res = $cls_db->sql_query("DELETE FROM `board_info` WHERE `idx`=".$board_info_idx);
+			if($res === false)
+			{
+				throw new Exception("게시판 설정 삭제에 실패 했습니다.");
+			}
+
+			$res = $this->log_boardInfoActionLog($board_info_idx, array(
+				"action_result"=>"게시판 설정 삭제",
+				"add_id"=>$data["del_id"],
+				"add_ip"=>$data["del_ip"]
+			), $data);
+			if($res === false)
+			{
+				throw new Exception($cls_db->getReturnText());
+			}
+
+			if($data["transaction_flag"]===true) $cls_db->do_commit();
+		}
+		catch(Exception $e)
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_rollback();
+
+			$cls_db->return_text = $e->getMessage();
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * 게시물 데이터 로그등록
+	 * @param Int  $board_data_idx 게시물 데이터 PK
+	 * @param Array $data 등록 데이터 배열
+	 * @param Array $processData 처리단에서 전달받은 데이터 배열
+	 */
+	public function log_boardDataActionLog($board_data_idx, $data=array(), $processData=array())
+	{
+		global $_SERVER, $cls_db;
+
+		// 로그 데이터 추출
+		$cls_db->get_log_data();
+
+		$sql = "INSERT INTO `board_data_action_log` SET";
+		$sql .= " `board_data_idx`=".$board_data_idx.",";
+		$sql .= " `action_result`='".$data["action_result"]."',";
+		$sql .= " `form_page_url`='".$_SERVER["HTTP_REFERER"]."',";
+		$sql .= " `action_page_url`='".$_SERVER["REQUEST_URI"]."',";
+		$sql .= " `session_data`='".$cls_db->session_data."',";
+		$sql .= " `cookie_data`='".$cls_db->cookie_data."',";
+		$sql .= " `get_data`='".$cls_db->get_data."',";
+		$sql .= " `post_data`='".$cls_db->post_data."',";
+		$sql .= " `data_array`='".addslashes(json_encode($processData, JSON_UNESCAPED_UNICODE))."',";
+		$sql .= " `add_date`=NOW(),";
+		$sql .= " `add_id`='".$data["add_id"]."',";
+		$sql .= " `add_ip`='".$data["add_ip"]."'";
+		$res = $cls_db->sql_query($sql);
+		if($res === false)
+		{
+			$cls_db->return_text = $data["action_result"]." 로그 저장에 실패 했습니다.";
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * 파라미터 값으로 WHERE 조건문 생성
+	 * @param Array $param 검색 데이터 배열
+	 */
+	private function get_dataSubSql($param=array())
+	{
+		$subsql = " WHERE 1=1";
+		if(isset($param["s_idx"])) $subsql .= " AND `idx`=".$param["s_idx"];
+		if(isset($param["s_boardId"])) $subsql .= " AND `board_id`='".$param["s_boardId"]."'";
+		if(isset($param["s_subject"])) $subsql .= " AND `subject`='".$param["s_subject"]."'";
+		if(isset($param["s_name"])) $subsql .= " AND `name`='".$param["s_name"]."'";
+		if(isset($param["s_email"])) $subsql .= " AND `email`='".$param["s_email"]."'";
+		if(isset($param["s_hp"])) $subsql .= " AND `hp`='".$param["s_hp"]."'";
+		if(isset($param["s_category"])) $subsql .= " AND `category`='".$param["s_category"]."'";
+		if(isset($param["s_hitCount"])) $subsql .= " AND `hit_count`=".$param["s_hitCount"];
+		if(isset($param["s_secretFlag"])) $subsql .= " AND `secret_flag`='".$param["s_secretFlag"]."'";
+		if(isset($param["s_passwd"])) $subsql .= " AND `passwd`='".$param["s_passwd"]."'";
+		if(isset($param["s_editorFlag"])) $subsql .= " AND `editor_flag`='".$param["s_editorFlag"]."'";
+		if(isset($param["s_subContent"])) $subsql .= " AND `sub_content`='".$param["s_subContent"]."'";
+		if(isset($param["s_content"])) $subsql .= " AND `content`='".$param["s_content"]."'";
+		if(isset($param["s_commentCount"])) $subsql .= " AND `comment_count`=".$param["s_commentCount"];
+		if(isset($param["s_noticeFlag"])) $subsql .= " AND `notice_flag`='".$param["s_noticeFlag"]."'";
+		if(isset($param["s_adminFlag"])) $subsql .= " AND `admin_flag`='".$param["s_adminFlag"]."'";
+		if(isset($param["s_fileUploadPath"])) $subsql .= " AND `file_upload_path`='".$param["s_fileUploadPath"]."'";
+		if(isset($param["s_addDate"])) $subsql .= " AND `add_date`='".$param["s_addDate"]."'";
+		if(isset($param["s_addId"])) $subsql .= " AND `add_id`='".$param["s_addId"]."'";
+		if(isset($param["s_addIp"])) $subsql .= " AND `add_ip`='".$param["s_addIp"]."'";
+		if(isset($param["s_editDate"])) $subsql .= " AND `edit_date`='".$param["s_editDate"]."'";
+		if(isset($param["s_editId"])) $subsql .= " AND `edit_id`='".$param["s_editId"]."'";
+		if(isset($param["s_editIp"])) $subsql .= " AND `edit_ip`='".$param["s_editIp"]."'";
+
+		if(isset($param["s_subject_like"])) $subsql .= " AND `subject` LIKE '%".$param["s_subject_like"]."%'";
+		if(isset($param["s_content_like"])) $subsql .= " AND `content` LIKE '%".$param["s_content_like"]."%'";
+		if(isset($param["s_name_like"])) $subsql .= " AND `name` LIKE '%".$param["s_name_like"]."%'";
+		if(!empty($param["s_key"]) && !empty($param["s_value"]))
+		{
+			if ($param["s_key"] == "s_total_like")
+			{
+				$subsql .= " AND CONCAT(`subject`, `content`) LIKE '%".$param["s_value"]."%'";
+			}
+			else
+			{
+				$subsql .= " AND `".$param["s_key"]."` LIKE '%".$param["s_value"]."%'";
+			}
+		}
+
+		return $subsql;
+	}
+
+	/**
+	 * 게시물 데이터 목록
+	 * @param Int $paging 페이지 번호
+	 * @param Int $list_max 페이지당 출력할 게시물 수
+	 * @param Array $param 검색 데이터 배열
+	 * @param String $field 불러올 컬럼
+	 */
+	public function get_pList_boardData($paging, $list_max, $param=array(), $field="*")
+	{
+		global $cls_db;
+
+		$subsql = $this->get_dataSubSql($param);
+
+		$cnt = $cls_db->sql_fetch("SELECT IF(COUNT(*)>0, COUNT(*), 0) AS `cnt` FROM `board_data`".$subsql);
+		$cls_db->total = $cnt["cnt"];
+
+		$paging_start = ($paging - 1) * $list_max;
+		$cls_db->rownum = $cls_db->total - $paging_start;
+
+		if(!empty($param["orderby"]))
+		{
+			$orderby = " ORDER BY ".$param["orderby"];
+		}
+		else
+		{
+			$orderby = " ORDER BY `idx` DESC";
+		}
+
+		return $cls_db->sql_fetch_array("SELECT ".$field." FROM `board_data`".$subsql.$orderby." LIMIT ".$paging_start.", ".$list_max);
+	}
+
+	/**
+	 * 게시물 데이터 목록
+	 * @param Array $param 검색 데이터 배열
+	 * @param String $field 불러올 컬럼
+	 */
+	public function get_list_boardData($param=array(), $field="*")
+	{
+		global $cls_db;
+
+		$subsql = $this->get_dataSubSql($param);
+
+		if(!empty($param["orderby"]))
+		{
+			$orderby = " ORDER BY ".$param["orderby"];
+		}
+		else
+		{
+			$orderby = " ORDER BY `idx` DESC";
+		}
+
+		return $cls_db->sql_fetch_array("SELECT ".$field." FROM `board_data`".$subsql.$orderby);
+	}
+
+	/**
+	 * 게시물 데이터 상세
+	 * @param Int $board_data_idx 게시물 데이터 PK
+	 * @param String $field 불러올 컬럼
+	 * @param Boolean $hit_flag 조회수 증가 flag
+	 */
+	public function get_view_boardData($board_data_idx, $field="*", $hit_flag=false)
+	{
+		global $cls_db;
+
+		if($hit_flag === true)
+		{
+			$exist_row = $cls_db->sql_fetch("SELECT `idx` FROM `board_data` WHERE `idx`=".$board_data_idx);
+			if (count((array)$exist_row["idx"]) > 0)
+			{
+				$cls_db->sql_query("UPDATE `board_data` SET `hit_count`=`hit_count`+1 WHERE `idx`=".$board_data_idx);
+			}
+			$row = $cls_db->sql_fetch("SELECT ".$field." FROM `board_data` WHERE `idx`=".$board_data_idx);
+		}
+		else
+		{
+			$row = $cls_db->sql_fetch("SELECT ".$field." FROM `board_data` WHERE `idx`=".$board_data_idx);
+		}
+
+		return $row;
+	}
+
+	/**
+	 * 게시물 데이터 상세
+	 * @param Array $param 검색 데이터 배열
+	 * @param String $field 불러올 컬럼
+	 */
+	public function get_view_boardData_search($param=array(), $field="*")
+	{
+		global $cls_db;
+
+		$subsql = $this->get_dataSubSql($param);
+
+		if(!empty($param["orderby"]))
+		{
+			$orderby = " ORDER BY ".$param["orderby"];
+		}
+		else
+		{
+			$orderby = " ORDER BY `idx` ASC";
+		}
+
+		return $cls_db->sql_fetch("SELECT ".$field." FROM `board_data`".$subsql.$orderby." LIMIT 1");
+	}
+
+	/**
+	 * 게시물 데이터 등록
+	 * @param Array $data 등록 데이터 배열
+	 */
+	public function add_boardData($data=array())
+	{
+		global $cls_db;
+
+		try
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_startTransaction();
+
+			$sql = "INSERT INTO `board_data` SET";
+			if(isset($data["board_id"])) $sql .= " `board_id`='".$data["board_id"]."',";
+			if(isset($data["subject"])) $sql .= " `subject`='".$data["subject"]."',";
+			if(isset($data["name"])) $sql .= " `name`='".$data["name"]."',";
+			if(isset($data["email"])) $sql .= " `email`='".$data["email"]."',";
+			if(isset($data["hp"])) $sql .= " `hp`='".$data["hp"]."',";
+			if(isset($data["category"])) $sql .= " `category`='".$data["category"]."',";
+			if(isset($data["hit_count"])) $sql .= " `hit_count`=".$data["hit_count"].",";
+			if(isset($data["secret_flag"])) $sql .= " `secret_flag`='".$data["secret_flag"]."',";
+			if(isset($data["passwd"])) $sql .= " `passwd`='".$data["passwd"]."',";
+			if(isset($data["editor_flag"])) $sql .= " `editor_flag`='".$data["editor_flag"]."',";
+			if(isset($data["sub_content"])) $sql .= " `sub_content`='".$data["sub_content"]."',";
+			if(isset($data["link"])) $sql .= " `link`='".$data["link"]."',";
+			if(isset($data["content"])) $sql .= " `content`='".$data["content"]."',";
+			if(isset($data["comment_count"])) $sql .= " `comment_count`=".$data["comment_count"].",";
+			if(isset($data["notice_flag"])) $sql .= " `notice_flag`='".$data["notice_flag"]."',";
+			if(isset($data["admin_flag"])) $sql .= " `admin_flag`='".$data["admin_flag"]."',";
+			if(isset($data["file_upload_path"])) $sql .= " `file_upload_path`='".$data["file_upload_path"]."',";
+			if(isset($data["write_date"])) $sql .= " `write_date`='".$data["write_date"]."',"; else $sql .= " `write_date`=NOW(),";
+			if(isset($data["add_id"])) $sql .= " `add_id`='".$data["add_id"]."',";
+			if(isset($data["add_ip"])) $sql .= " `add_ip`='".$data["add_ip"]."',";
+			if(isset($data["add_date"])) $sql .= " `add_date`='".$data["add_date"]."'"; else $sql .= " `add_date`=NOW()";
+			$res = $cls_db->sql_query($sql);
+			if($res === false)
+			{
+				throw new Exception("게시물 데이터 등록에 실패 했습니다.");
+			}
+
+			$cls_db->latest_idx = mysqli_insert_id($cls_db->connect);
+
+			$res = $this->log_boardDataActionLog($cls_db->getLatestIdx(), array(
+				"action_result"=>"게시물 데이터 등록",
+				"add_id"=>$data["add_id"],
+				"add_ip"=>$data["add_ip"]
+			), $data);
+			if($res === false)
+			{
+				throw new Exception($cls_db->getReturnText());
+			}
+
+			if($data["transaction_flag"]===true) $cls_db->do_commit();
+		}
+		catch(Exception $e)
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_rollback();
+
+			$cls_db->return_text = $e->getMessage();
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * 게시물 데이터 수정
+	 * @param Int $board_data_idx 게시물 데이터 PK
+	 * @param Array $data 수정 데이터 배열
+	 */
+	public function edit_boardData($board_data_idx, $data=array())
+	{
+		global $cls_db;
+
+		try
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_startTransaction();
+
+			$sql = "UPDATE `board_data` SET";
+			if(isset($data["board_id"])) $sql .= " `board_id`='".$data["board_id"]."',";
+			if(isset($data["subject"])) $sql .= " `subject`='".$data["subject"]."',";
+			if(isset($data["name"])) $sql .= " `name`='".$data["name"]."',";
+			if(isset($data["email"])) $sql .= " `email`='".$data["email"]."',";
+			if(isset($data["hp"])) $sql .= " `hp`='".$data["hp"]."',";
+			if(isset($data["category"])) $sql .= " `category`='".$data["category"]."',";
+			if(isset($data["hit_count"])) $sql .= " `hit_count`=".$data["hit_count"].",";
+			if(isset($data["secret_flag"])) $sql .= " `secret_flag`='".$data["secret_flag"]."',";
+			if(isset($data["passwd"])) $sql .= " `passwd`='".$data["passwd"]."',";
+			if(isset($data["editor_flag"])) $sql .= " `editor_flag`='".$data["editor_flag"]."',";
+			if(isset($data["sub_content"])) $sql .= " `sub_content`='".$data["sub_content"]."',";
+			if(isset($data["link"])) $sql .= " `link`='".$data["link"]."',";
+			if(isset($data["content"])) $sql .= " `content`='".$data["content"]."',";
+			if(isset($data["comment_count"])) $sql .= " `comment_count`=".$data["comment_count"].",";
+			if(isset($data["notice_flag"])) $sql .= " `notice_flag`='".$data["notice_flag"]."',";
+			if(isset($data["admin_flag"])) $sql .= " `admin_flag`='".$data["admin_flag"]."',";
+			if(isset($data["file_upload_path"])) $sql .= " `file_upload_path`='".$data["file_upload_path"]."',";
+			if(isset($data["write_date"])) $sql .= " `write_date`='".$data["write_date"]."',";
+			if(isset($data["add_date"])) $sql .= " `add_date`='".$data["add_date"]."',";
+			if(isset($data["edit_id"])) $sql .= " `edit_id`='".$data["edit_id"]."',";
+			if(isset($data["edit_ip"])) $sql .= " `edit_ip`='".$data["edit_ip"]."',";
+			$sql .= " `edit_date`=NOW()";
+			$sql .= " WHERE `idx`=".$board_data_idx;
+			$res = $cls_db->sql_query($sql);
+			if($res === false)
+			{
+				throw new Exception("게시물 데이터 수정에 실패 했습니다.");
+			}
+
+			$res = $this->log_boardDataActionLog($board_data_idx, array(
+				"action_result"=>"게시물 데이터 수정",
+				"add_id"=>$data["edit_id"],
+				"add_ip"=>$data["edit_ip"]
+			), $data);
+			if($res === false)
+			{
+				throw new Exception($cls_db->getReturnText());
+			}
+
+			if($data["transaction_flag"]===true) $cls_db->do_commit();
+		}
+		catch(Exception $e)
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_rollback();
+
+			$cls_db->return_text = $e->getMessage();
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * 게시물 데이터 삭제
+	 * @param Int $board_data_idx 게시물 데이터 PK
+	 * @param Array $data 삭제 데이터 배열
+	 */
+	public function del_boardData($board_data_idx, $data=array())
+	{
+		global $cls_db;
+
+		try
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_startTransaction();
+
+			$old = $this->get_view_boardData($board_data_idx, "`idx`, `board_id`, `file_upload_path`");
+			if(count((array)$old["idx"]) == 0)
+			{
+				throw new Exception("게시물 데이터가 없습니다.");
+			}
+
+			$board_file = $this->get_list_boardFile(array(
+				"s_boardDataIdx"=>$board_data_idx
+			), "`idx`");
+			if(count((array)$board_file["idx"]) > 0)
+			{
+				for($i=0; $i<count($board_file["idx"]); $i++)
+				{
+					$res = $this->del_boardFile($board_file["idx"][$i]);
+					if($res === false)
+					{
+						throw new Exception($cls_db->getReturnText());
+					}
+				}
+			}
+
+			if(is_dir(CFG_PUBLIC_PATH_ABS."/uploadFiles/board_data/".$old["board_id"]."/".$old["file_upload_path"]."/") === true)
+			{
+				if(unlink_directory(CFG_PUBLIC_PATH_ABS."/uploadFiles/board_data/".$old["board_id"]."/".$old["file_upload_path"]."/") === false)
+				{
+					throw new Exception("게시물 디렉토리 삭제에 실패 했습니다.");
+				}
+			}
+
+			$res = $cls_db->sql_query("DELETE FROM `board_data` WHERE `idx`=".$board_data_idx);
+			if($res === false)
+			{
+				throw new Exception("게시물 데이터 삭제에 실패 했습니다.");
+			}
+
+			$res = $this->log_boardDataActionLog($board_data_idx, array(
+				"action_result"=>"게시물 데이터 삭제",
+				"add_id"=>$data["del_id"],
+				"add_ip"=>$data["del_ip"]
+			), $data);
+			if($res === false)
+			{
+				throw new Exception($cls_db->getReturnText());
+			}
+
+			if($data["transaction_flag"]===true) $cls_db->do_commit();
+		}
+		catch(Exception $e)
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_rollback();
+
+			$cls_db->return_text = $e->getMessage();
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * 파라미터 값으로 WHERE 조건문 생성
+	 * @param Array $param 검색 데이터 배열
+	 */
+	private function get_fileSubSql($param=array())
+	{
+		$subsql = " WHERE 1=1";
+		if(isset($param["s_idx"])) $subsql .= " AND `idx`=".$param["s_idx"];
+		if(isset($param["s_boardDataIdx"])) $subsql .= " AND `board_data_idx`=".$param["s_boardDataIdx"];
+		if(isset($param["s_boardId"])) $subsql .= " AND `board_id`='".$param["s_boardId"]."'";
+		if(isset($param["s_imageType"])) $subsql .= " AND `image_type`='".$param["s_imageType"]."'";
+		if(isset($param["s_savedFile"])) $subsql .= " AND `saved_file`='".$param["s_savedFile"]."'";
+		if(isset($param["s_uploadedFile"])) $subsql .= " AND `uploaded_file`='".$param["s_uploadedFile"]."'";
+		if(isset($param["s_fileSize"])) $subsql .= " AND `file_size`=".$param["s_fileSize"];
+		if(isset($param["s_fileExtension"])) $subsql .= " AND `file_extension`='".$param["s_fileExtension"]."'";
+		if(isset($param["s_fileWidth"])) $subsql .= " AND `file_width`=".$param["s_fileWidth"];
+		if(isset($param["s_fileHeight"])) $subsql .= " AND `file_height`=".$param["s_fileHeight"];
+		if(isset($param["s_downloadCount"])) $subsql .= " AND `download_count`=".$param["s_downloadCount"];
+		if(isset($param["s_addDate"])) $subsql .= " AND `add_date`='".$param["s_addDate"]."'";
+		if(isset($param["s_addId"])) $subsql .= " AND `add_id`='".$param["s_addId"]."'";
+		if(isset($param["s_addIp"])) $subsql .= " AND `add_ip`='".$param["s_addIp"]."'";
+		if(isset($param["s_editDate"])) $subsql .= " AND `edit_date`='".$param["s_editDate"]."'";
+		if(isset($param["s_editId"])) $subsql .= " AND `edit_id`='".$param["s_editId"]."'";
+		if(isset($param["s_editIp"])) $subsql .= " AND `edit_ip`='".$param["s_editIp"]."'";
+
+		return $subsql;
+	}
+
+	/**
+	 * 게시판 데이터의 첨부파일 목록
+	 * @param Array $param 검색 데이터 배열
+	 * @param String $field 불러올 컬럼
+	 */
+	public function get_list_boardFile($param=array(), $field="*")
+	{
+		global $cls_db;
+
+		$subsql = $this->get_fileSubSql($param);
+
+		if(!empty($param["orderby"]))
+		{
+			$orderby = " ORDER BY ".$param["orderby"];
+		}
+		else
+		{
+			$orderby = " ORDER BY `add_date` DESC";
+		}
+
+		return $cls_db->sql_fetch_array("SELECT ".$field." FROM `board_file`".$subsql.$orderby);
+	}
+
+	/**
+	 * 게시판 데이터의 첨부파일 상세
+	 * @param Int $board_file_idx 게시판 데이터의 첨부파일 PK
+	 * @param String $field 불러올 컬럼
+	 */
+	public function get_view_boardFile($board_file_idx, $field="*")
+	{
+		global $cls_db;
+
+		return $cls_db->sql_fetch("SELECT ".$field." FROM `board_file` WHERE `idx`=".$board_file_idx);
+	}
+
+	/**
+	 * 게시판 데이터의 첨부파일 상세
+	 * @param Array $param 검색 데이터 배열
+	 * @param String $field 불러올 컬럼
+	 */
+	public function get_view_boardFile_search($param=array(), $field="*")
+	{
+		global $cls_db;
+
+		$subsql = $this->get_fileSubSql($param);
+
+		if(!empty($param["orderby"]))
+		{
+			$orderby = " ORDER BY ".$param["orderby"];
+		}
+		else
+		{
+			$orderby = " ORDER BY `idx` ASC";
+		}
+
+		return $cls_db->sql_fetch("SELECT ".$field." FROM `board_file`".$subsql.$orderby." LIMIT 1");
+	}
+
+	/**
+	 * 게시판 데이터의 첨부파일 등록
+	 * @param Array $data 등록 데이터 배열
+	 */
+	public function add_boardFile($data=array())
+	{
+		global $cls_db;
+
+		try
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_startTransaction();
+
+			$sql = "INSERT INTO `board_file` SET";
+			if(isset($data["board_data_idx"])) $sql .= " `board_data_idx`=".$data["board_data_idx"].",";
+			if(isset($data["board_id"])) $sql .= " `board_id`='".$data["board_id"]."',";
+			if(isset($data["image_type"])) $sql .= " `image_type`='".$data["image_type"]."',";
+			if(isset($data["saved_file"])) $sql .= " `saved_file`='".$data["saved_file"]."',";
+			if(isset($data["uploaded_file"])) $sql .= " `uploaded_file`='".$data["uploaded_file"]."',";
+			if(isset($data["file_size"])) $sql .= " `file_size`=".$data["file_size"].",";
+			if(isset($data["file_extension"])) $sql .= " `file_extension`='".$data["file_extension"]."',";
+			if(isset($data["file_width"])) $sql .= " `file_width`=".$data["file_width"].",";
+			if(isset($data["file_height"])) $sql .= " `file_height`=".$data["file_height"].",";
+			if(isset($data["download_count"])) $sql .= " `download_count`=".$data["download_count"].",";
+			if(isset($data["add_id"])) $sql .= " `add_id`='".$data["add_id"]."',";
+			if(isset($data["add_ip"])) $sql .= " `add_ip`='".$data["add_ip"]."',";
+			$sql .= " `add_date`=NOW()";
+			$res = $cls_db->sql_query($sql);
+			if($res === false)
+			{
+				throw new Exception("게시판 데이터의 첨부파일 등록에 실패 했습니다.");
+			}
+
+			if($data["transaction_flag"]===true) $cls_db->do_commit();
+		}
+		catch(Exception $e)
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_rollback();
+
+			$cls_db->return_text = $e->getMessage();
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * 게시판 데이터의 첨부파일 수정
+	 * @param Int $board_file_idx 게시판 데이터의 첨부파일 PK
+	 * @param Array $data 수정 데이터 배열
+	 */
+	public function edit_boardFile($board_file_idx, $data=array())
+	{
+		global $cls_db;
+
+		try
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_startTransaction();
+
+			$sql = "UPDATE `board_file` SET";
+			if(isset($data["board_data_idx"])) $sql .= " `board_data_idx`=".$data["board_data_idx"].",";
+			if(isset($data["board_id"])) $sql .= " `board_id`='".$data["board_id"]."',";
+			if(isset($data["image_type"])) $sql .= " `image_type`='".$data["image_type"]."',";
+			if(isset($data["saved_file"])) $sql .= " `saved_file`='".$data["saved_file"]."',";
+			if(isset($data["uploaded_file"])) $sql .= " `uploaded_file`='".$data["uploaded_file"]."',";
+			if(isset($data["file_size"])) $sql .= " `file_size`=".$data["file_size"].",";
+			if(isset($data["file_extension"])) $sql .= " `file_extension`='".$data["file_extension"]."',";
+			if(isset($data["file_width"])) $sql .= " `file_width`=".$data["file_width"].",";
+			if(isset($data["file_height"])) $sql .= " `file_height`=".$data["file_height"].",";
+			if(isset($data["download_count"])) $sql .= " `download_count`=".$data["download_count"].",";
+			if(isset($data["edit_id"])) $sql .= " `edit_id`='".$data["edit_id"]."',";
+			if(isset($data["edit_ip"])) $sql .= " `edit_ip`='".$data["edit_ip"]."',";
+			$sql .= " `edit_date`=NOW()";
+			$sql .= " WHERE `idx`=".$board_file_idx;
+			$res = $cls_db->sql_query($sql);
+			if($res === false)
+			{
+				throw new Exception("게시판 데이터의 첨부파일 수정에 실패 했습니다.");
+			}
+
+			if($data["transaction_flag"]===true) $cls_db->do_commit();
+		}
+		catch(Exception $e)
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_rollback();
+
+			$cls_db->return_text = $e->getMessage();
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * 게시판 데이터의 첨부파일 삭제
+	 * @param Int $board_file_idx 게시판 데이터의 첨부파일 PK
+	 * @param Array $data 삭제 데이터 배열
+	 */
+	public function del_boardFile($board_file_idx, $data=array())
+	{
+		global $cls_db;
+
+		try
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_startTransaction();
+
+			$old = $this->get_view_boardFile($board_file_idx, "`saved_file`, (SELECT CONCAT(`board_id`, '/', `file_upload_path`, '/') FROM `board_data` WHERE `idx`=`board_file`.`board_data_idx`) AS `file_path`");
+			if(count((array)$old["saved_file"]) > 0 && file_exists(CFG_PUBLIC_PATH_ABS."/uploadFiles/board_data/".$old["file_path"].$old["saved_file"]) === true)
+			{
+				if(unlink(CFG_PUBLIC_PATH_ABS."/uploadFiles/board_data/".$old["file_path"].$old["saved_file"]) === false)
+				{
+					throw new Exception("첨부파일 삭제에 실패 했습니다.");
+				}
+			}
+
+			$res = $cls_db->sql_query("DELETE FROM `board_file` WHERE `idx`=".$board_file_idx);
+			if($res === false)
+			{
+				throw new Exception("게시판 데이터의 첨부파일 삭제에 실패 했습니다.");
+			}
+
+			if($data["transaction_flag"]===true) $cls_db->do_commit();
+		}
+		catch(Exception $e)
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_rollback();
+
+			$cls_db->return_text = $e->getMessage();
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * 게시글의 댓글 로그등록
+	 * @param Int  $board_comment_idx 게시글의 댓글 PK
+	 * @param Array $data 등록 데이터 배열
+	 * @param Array $processData 처리단에서 전달받은 데이터 배열
+	 */
+	public function log_boardCommentActionLog($board_comment_idx, $data=array(), $processData=array())
+	{
+		global $_SERVER, $cls_db;
+
+		// 로그 데이터 추출
+		$cls_db->get_log_data();
+
+		$sql = "INSERT INTO `board_comment_action_log` SET";
+		$sql .= " `board_comment_idx`=".$board_comment_idx.",";
+		$sql .= " `action_result`='".$data["action_result"]."',";
+		$sql .= " `form_page_url`='".$_SERVER["HTTP_REFERER"]."',";
+		$sql .= " `action_page_url`='".$_SERVER["REQUEST_URI"]."',";
+		$sql .= " `session_data`='".$cls_db->session_data."',";
+		$sql .= " `cookie_data`='".$cls_db->cookie_data."',";
+		$sql .= " `get_data`='".$cls_db->get_data."',";
+		$sql .= " `post_data`='".$cls_db->post_data."',";
+		$sql .= " `data_array`='".json_encode($processData, JSON_UNESCAPED_UNICODE)."',";
+		$sql .= " `add_date`=NOW(),";
+		$sql .= " `add_id`='".$data["add_id"]."',";
+		$sql .= " `add_ip`='".$data["add_ip"]."'";
+		$res = $cls_db->sql_query($sql);
+		if($res === false)
+		{
+			$cls_db->return_text = $data["action_result"]." 로그 저장에 실패 했습니다.";
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * 파라미터 값으로 WHERE 조건문 생성
+	 * @param Array $param 검색 데이터 배열
+	 */
+	private function get_commentSubSql($param=array())
+	{
+		$subsql = " WHERE 1=1";
+		if(isset($param["s_idx"])) $subsql .= " AND `idx`=".$param["s_idx"];
+		if(isset($param["s_boardDataIdx"])) $subsql .= " AND `board_data_idx`=".$param["s_boardDataIdx"];
+		if(isset($param["s_boardId"])) $subsql .= " AND `board_id`='".$param["s_boardId"]."'";
+		if(isset($param["s_groupIdx"])) $subsql .= " AND `group_idx`=".$param["s_groupIdx"];
+		if(isset($param["s_parentIdx"])) $subsql .= " AND `parent_idx`=".$param["s_parentIdx"];
+		if(isset($param["s_listNumber"])) $subsql .= " AND `list_number`=".$param["s_listNumber"];
+		if(isset($param["s_parentName"])) $subsql .= " AND `parent_name`='".$param["s_parentName"]."'";
+		if(isset($param["s_password"])) $subsql .= " AND `password`='".$param["s_password"]."'";
+		if(isset($param["s_name"])) $subsql .= " AND `name`='".$param["s_name"]."'";
+		if(isset($param["s_secretFlag"])) $subsql .= " AND `secret_flag`='".$param["s_secretFlag"]."'";
+		if(isset($param["s_comment"])) $subsql .= " AND `comment`='".$param["s_comment"]."'";
+		if(isset($param["s_status"])) $subsql .= " AND `status`='".$param["s_status"]."'";
+		if(isset($param["s_addDate"])) $subsql .= " AND `add_date`='".$param["s_addDate"]."'";
+		if(isset($param["s_addId"])) $subsql .= " AND `add_id`='".$param["s_addId"]."'";
+		if(isset($param["s_addIp"])) $subsql .= " AND `add_ip`='".$param["s_addIp"]."'";
+		if(isset($param["s_editDate"])) $subsql .= " AND `edit_date`='".$param["s_editDate"]."'";
+		if(isset($param["s_editId"])) $subsql .= " AND `edit_id`='".$param["s_editId"]."'";
+		if(isset($param["s_editIp"])) $subsql .= " AND `edit_ip`='".$param["s_editIp"]."'";
+
+		if(isset($param["s_idx_ne"])) $subsql .= " AND `idx`!=".$param["s_idx_ne"];
+		if(isset($param["s_originalComment"]))
+		{
+			if($param["s_originalComment"] == "y")
+			{
+				$subsql .= " AND `idx`=`parent_idx`";
+			}
+			else if($param["s_originalComment"] == "n")
+			{
+				$subsql .= " AND `idx`!=`parent_idx`";
+			}
+		}
+
+		return $subsql;
+	}
+
+	/**
+	 * 게시글의 댓글 목록
+	 * @param Int $paging 페이지 번호
+	 * @param Int $list_max 페이지당 출력할 게시물 수
+	 * @param Array $param 검색 데이터 배열
+	 * @param String $field 불러올 컬럼
+	 */
+	public function get_pList_boardComment($paging, $list_max, $param=array(), $field="*")
+	{
+		global $cls_db;
+
+		$subsql = $this->get_commentSubSql($param);
+
+		$cnt = $cls_db->sql_fetch("SELECT IF(COUNT(*)>0, COUNT(*), 0) AS `cnt` FROM `board_comment`".$subsql);
+		$cls_db->total = $cnt["cnt"];
+
+		$paging_start = ($paging - 1) * $list_max;
+		$cls_db->rownum = $cls_db->total - $paging_start;
+
+		if(!empty($param["orderby"]))
+		{
+			$orderby = " ORDER BY ".$param["orderby"];
+		}
+		else
+		{
+			$orderby = " ORDER BY `add_date` DESC";
+		}
+		return $cls_db->sql_fetch_array("SELECT ".$field." FROM `board_comment`".$subsql.$orderby." LIMIT ".$paging_start.", ".$list_max);
+	}
+
+	/**
+	 * 게시글의 댓글 목록
+	 * @param Array $param 검색 데이터 배열
+	 * @param String $field 불러올 컬럼
+	 */
+	public function get_list_boardComment($param=array(), $field="*")
+	{
+		global $cls_db;
+
+		$subsql = $this->get_commentSubSql($param);
+
+		if(!empty($param["orderby"]))
+		{
+			$orderby = " ORDER BY ".$param["orderby"];
+		}
+		else
+		{
+			$orderby = " ORDER BY `add_date` DESC";
+		}
+		return $cls_db->sql_fetch_array("SELECT ".$field." FROM `board_comment`".$subsql.$orderby);
+	}
+
+	/**
+	 * 게시글의 댓글 상세
+	 * @param Int $board_comment_idx 게시글의 댓글 PK
+	 * @param String $field 불러올 컬럼
+	 */
+	public function get_view_boardComment($board_comment_idx, $field="*")
+	{
+		global $cls_db;
+
+		return $cls_db->sql_fetch("SELECT ".$field." FROM `board_comment` WHERE `idx`=".$board_comment_idx);
+	}
+
+	/**
+	 * 게시글의 댓글 상세
+	 * @param Array $param 검색 데이터 배열
+	 * @param String $field 불러올 컬럼
+	 */
+	public function get_view_boardComment_search($param=array(), $field="*")
+	{
+		global $cls_db;
+
+		$subsql = $this->get_commentSubSql($param);
+
+		if(!empty($param["orderby"]))
+		{
+			$orderby = " ORDER BY ".$param["orderby"];
+		}
+		else
+		{
+			$orderby = " ORDER BY `idx` ASC";
+		}
+
+		return $cls_db->sql_fetch("SELECT ".$field." FROM `board_comment`".$subsql.$orderby." LIMIT 1");
+	}
+
+	/**
+	 * 게시글의 댓글 등록
+	 * @param Array $data 등록 데이터 배열
+	 */
+	public function add_boardComment($data=array())
+	{
+		global $cls_db;
+
+		try
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_startTransaction();
+
+			$sql = "INSERT INTO `board_comment` SET";
+			if(isset($data["board_data_idx"])) $sql .= " `board_data_idx`=".$data["board_data_idx"].",";
+			if(isset($data["board_id"])) $sql .= " `board_id`='".$data["board_id"]."',";
+			if(isset($data["group_idx"])) $sql .= " `group_idx`=".$data["group_idx"].",";
+			if(isset($data["parent_idx"])) $sql .= " `parent_idx`=".$data["parent_idx"].",";
+			if(isset($data["list_number"])) $sql .= " `list_number`=".$data["list_number"].",";
+			if(isset($data["parent_name"])) $sql .= " `parent_name`='".$data["parent_name"]."',";
+			if(isset($data["password"])) $sql .= " `password`='".$data["password"]."',";
+			if(isset($data["name"])) $sql .= " `name`='".$data["name"]."',";
+			if(isset($data["secret_flag"])) $sql .= " `secret_flag`='".$data["secret_flag"]."',";
+			if(isset($data["comment"])) $sql .= " `comment`='".$data["comment"]."',";
+			if(isset($data["status"])) $sql .= " `status`='".$data["status"]."',";
+			if(isset($data["add_id"])) $sql .= " `add_id`='".$data["add_id"]."',";
+			if(isset($data["add_ip"])) $sql .= " `add_ip`='".$data["add_ip"]."',";
+			$sql .= " `add_date`=NOW()";
+			$res = $cls_db->sql_query($sql);
+			if($res === false)
+			{
+				throw new Exception("게시글의 댓글 등록에 실패 했습니다.");
+			}
+
+			$cls_db->latest_idx = mysqli_insert_id($cls_db->connect);
+
+			$res = $this->log_boardCommentActionLog($cls_db->getLatestIdx(), array(
+				"action_result"=>"게시글의 댓글 등록",
+				"add_id"=>$data["add_id"],
+				"add_ip"=>$data["add_ip"]
+			), $data);
+			if($res === false)
+			{
+				throw new Exception($cls_db->getReturnText());
+			}
+
+			if($data["transaction_flag"]===true) $cls_db->do_commit();
+		}
+		catch(Exception $e)
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_rollback();
+
+			$cls_db->return_text = $e->getMessage();
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * 게시글의 댓글 수정
+	 * @param Int $board_comment_idx 게시글의 댓글 PK
+	 * @param Array $data 수정 데이터 배열
+	 */
+	public function edit_boardComment($board_comment_idx, $data=array())
+	{
+		global $cls_db;
+
+		try
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_startTransaction();
+
+			$sql = "UPDATE `board_comment` SET";
+			if(isset($data["board_data_idx"])) $sql .= " `board_data_idx`=".$data["board_data_idx"].",";
+			if(isset($data["board_id"])) $sql .= " `board_id`='".$data["board_id"]."',";
+			if(isset($data["group_idx"])) $sql .= " `group_idx`=".$data["group_idx"].",";
+			if(isset($data["parent_idx"])) $sql .= " `parent_idx`=".$data["parent_idx"].",";
+			if(isset($data["list_number"])) $sql .= " `list_number`=".$data["list_number"].",";
+			if(isset($data["parent_name"])) $sql .= " `parent_name`='".$data["parent_name"]."',";
+			if(isset($data["password"])) $sql .= " `password`='".$data["password"]."',";
+			if(isset($data["name"])) $sql .= " `name`='".$data["name"]."',";
+			if(isset($data["secret_flag"])) $sql .= " `secret_flag`='".$data["secret_flag"]."',";
+			if(isset($data["comment"])) $sql .= " `comment`='".$data["comment"]."',";
+			if(isset($data["status"])) $sql .= " `status`='".$data["status"]."',";
+			if(isset($data["edit_id"])) $sql .= " `edit_id`='".$data["edit_id"]."',";
+			if(isset($data["edit_ip"])) $sql .= " `edit_ip`='".$data["edit_ip"]."',";
+			$sql .= " `edit_date`=NOW()";
+			$sql .= " WHERE `idx`=".$board_comment_idx;
+			$res = $cls_db->sql_query($sql);
+			if($res === false)
+			{
+				throw new Exception("게시글의 댓글 수정에 실패 했습니다.");
+			}
+
+			$res = $this->log_boardCommentActionLog($board_comment_idx, array(
+				"action_result"=>"게시글의 댓글 수정",
+				"add_id"=>$data["edit_id"],
+				"add_ip"=>$data["edit_ip"]
+			), $data);
+			if($res === false)
+			{
+				throw new Exception($cls_db->getReturnText());
+			}
+
+			if($data["transaction_flag"]===true) $cls_db->do_commit();
+		}
+		catch(Exception $e)
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_rollback();
+
+			$cls_db->return_text = $e->getMessage();
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * 게시글의 댓글 삭제
+	 * @param Int $board_comment_idx 게시글의 댓글 PK
+	 * @param Array $data 삭제 데이터 배열
+	 */
+	public function del_boardComment($board_comment_idx, $data=array())
+	{
+		global $cls_db;
+
+		try
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_startTransaction();
+
+			$res = $cls_db->sql_query("DELETE FROM `board_comment` WHERE `idx`=".$board_comment_idx);
+			if($res === false)
+			{
+				throw new Exception("게시글의 댓글 삭제에 실패 했습니다.");
+			}
+
+			$res = $this->log_boardCommentActionLog($board_comment_idx, array(
+				"action_result"=>"게시글의 댓글 삭제",
+				"add_id"=>$data["del_id"],
+				"add_ip"=>$data["del_ip"]
+			), $data);
+			if($res === false)
+			{
+				throw new Exception($cls_db->getReturnText());
+			}
+
+			if($data["transaction_flag"]===true) $cls_db->do_commit();
+		}
+		catch(Exception $e)
+		{
+			if($data["transaction_flag"]===true) $cls_db->do_rollback();
+
+			$cls_db->return_text = $e->getMessage();
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * 게시물 목록 초기화
+	 * @param String $bbs_id 게시판 ID
+	 * @param String $bbs_param 인자값
+	 * @param Array $bbs_notice 공지 게시물 목록 배열
+	 * @param Array $bbs_data 일반 게시물 목록 배열
+	 * @param Array $bbs_cfg 게시판 설정 배열
+	 * @param Int $bbs_rownum 현재 페이지까지의 개시물 수
+	 * @param Int $bbs_cnt 전체 개시물 수
+	 */
+	public function init_bbs($bbs_id="", $bbs_param="", $bbs_notice=array(), $bbs_data=array(), $bbs_cfg=array(), $bbs_rownum=0, $bbs_cnt=0)
+ 	{
+ 		$this->bbs_id = $bbs_id;
+ 		$this->bbs_param = $bbs_param;
+ 		$this->bbs_notice = $bbs_notice;
+		$this->bbs_data = $bbs_data;
+ 		$this->bbs_cfg = $bbs_cfg;
+ 		$this->bbs_rownum = $bbs_rownum;
+ 		$this->bbs_cnt = $bbs_cnt;
+ 	}
+
+	public function get_bbs_column($column, $seq="")
+	{
+		$data = $this->bbs_mode=="notice" ? $this->bbs_notice : $this->bbs_data;
+
+		if(is_array($data[$column]) && gettype($seq) == "integer")
+		{
+			return $data[$column][$seq];
+		}
+		else
+		{
+			return $data[$column];
+		}
+	}
+
+	public function get_list()
+	{
+		global $skin_array_list, $default_skin, $notice_skin, $normal_skin, $no_data, $faq;
+
+		$return_string = $default_skin;
+
+		$notice_skin_data = "";
+		if(count((array)$this->bbs_notice["idx"]) > 0)
+		{
+			$this->bbs_mode = "notice";
+			for($i=0; $i<count($this->bbs_notice["idx"]); $i++)
+			{
+				$skinHTML = str_replace("{{--rownum--}}", $this->get_bbs_rownum($skin_array_list, $i), $notice_skin);
+				$skinHTML = str_replace("{{--view_link--}}", $this->get_bbs_viewLink($skin_array_list, $i), $skinHTML);
+				$skinHTML = str_replace("{{--subject--}}", $this->get_bbs_subject($skin_array_list, $i), $skinHTML);
+				$skinHTML = str_replace("{{--secret_flag--}}", $this->get_bbs_secretFlag($skin_array_list, $i), $skinHTML);
+				$skinHTML = str_replace("{{--comment_count--}}", $this->get_bbs_commentCount($skin_array_list, $i), $skinHTML);
+				$skinHTML = str_replace("{{--attach_icon--}}", $this->get_bbs_attachIcon($skin_array_list, $i), $skinHTML);
+				$skinHTML = str_replace("{{--new_icon--}}", $this->get_bbs_newIcon($skin_array_list, $i), $skinHTML);
+				$skinHTML = str_replace("{{--add_date--}}", $this->get_bbs_addDate($skin_array_list, $i), $skinHTML);
+				$skinHTML = str_replace("{{--hit_count--}}", $this->get_bbs_hitCount($skin_array_list, $i), $skinHTML);
+
+				$notice_skin_data .= $skinHTML;
+				$skinHTML = "";
+			}
+		}
+		$return_string = str_replace("{{--notice_list_skin--}}", $notice_skin_data, $return_string);
+
+		$normal_skin_data = "";
+		if(count((array)$this->bbs_data["idx"]) > 0)
+		{
+			$this->bbs_mode = "normal";
+			for($i=0; $i<count($this->bbs_data["idx"]); $i++)
+			{
+				$skinHTML = str_replace("{{--rownum--}}", $this->get_bbs_rownum($skin_array_list, $i), $normal_skin);
+				$skinHTML = str_replace("{{--view_link--}}", $this->get_bbs_viewLink($skin_array_list, $i), $skinHTML);
+				$skinHTML = str_replace("{{--subject--}}", $this->get_bbs_subject($skin_array_list, $i), $skinHTML);
+				$skinHTML = str_replace("{{--secret_flag--}}", $this->get_bbs_secretFlag($skin_array_list, $i), $skinHTML);
+				$skinHTML = str_replace("{{--comment_count--}}", $this->get_bbs_commentCount($skin_array_list, $i), $skinHTML);
+				$skinHTML = str_replace("{{--attach_icon--}}", $this->get_bbs_attachIcon($skin_array_list, $i), $skinHTML);
+				$skinHTML = str_replace("{{--new_icon--}}", $this->get_bbs_newIcon($skin_array_list, $i), $skinHTML);
+				$skinHTML = str_replace("{{--add_date--}}", $this->get_bbs_addDate($skin_array_list, $i), $skinHTML);
+				$skinHTML = str_replace("{{--thumbnail--}}", $this->get_bbs_thumbnail($i), $skinHTML);
+				$skinHTML = str_replace("{{--category_name--}}", $faq[$this->get_bbs_column("category", $i)], $skinHTML);
+				$skinHTML = str_replace("{{--content--}}", $this->get_bbs_content($skin_array_list, $i), $skinHTML);
+				$skinHTML = str_replace("{{--sub_content--}}", $this->get_bbs_subContent($skin_array_list, $i), $skinHTML);
+				$skinHTML = str_replace("{{--hit_count--}}", $this->get_bbs_hitCount($skin_array_list, $i), $skinHTML);
+
+				$normal_skin_data .= $skinHTML;
+				$skinHTML = "";
+			}
+			$return_string = str_replace("{{--no_data--}}", "", $return_string);
+			$return_string = str_replace("{{--list_skin--}}", $normal_skin_data, $return_string);
+		}
+		else
+		{
+			$return_string = str_replace("{{--list_skin--}}", "", $return_string);
+			$normal_skin_data = $no_data;
+			$return_string = str_replace("{{--no_data--}}", $normal_skin_data, $return_string);
+		}
+
+		$return_string = str_replace("{{--search_action_url--}}", "/board/list/".$this->bbs_id, $return_string);
+		$return_string = str_replace("{{--faq_category--}}", $this->get_bbs_faq_category(), $return_string);
+		$return_string = str_replace("{{--more_btn--}}", $this->get_moreBtn($skin_array_list), $return_string);
+		$return_string = str_replace("{{--add_btn--}}", $this->get_bbs_addButton($skin_array_list), $return_string);
+
+		return $return_string;
+	}
+
+	public function get_view()
+	{
+		global $skin_array_view, $skin;
+
+		$return_string = str_replace("{{--subject--}}", $this->get_bbs_subject($skin_array_view), $skin);
+		$return_string = str_replace("{{--add_date--}}", $this->get_bbs_addDate($skin_array_view), $return_string);
+		$return_string = str_replace("{{--hit_count--}}", $this->get_bbs_hitCount($skin_array_view), $return_string);
+		$return_string = str_replace("{{--comment_count--}}", $this->get_bbs_commentCount($skin_array_view), $return_string);
+		$return_string = str_replace("{{--filename_list--}}", $this->get_bbs_filenameList($skin_array_view), $return_string);
+		$return_string = str_replace("{{--content--}}", $this->get_bbs_content($skin_array_view), $return_string);
+		$return_string = str_replace("{{--sub_content--}}", $this->get_bbs_subContent($skin_array_view), $return_string);
+		$return_string = str_replace("{{--prev_data--}}", $this->get_bbs_prevData($skin_array_view), $return_string);
+		$return_string = str_replace("{{--next_data--}}", $this->get_bbs_nextData($skin_array_view), $return_string);
+		$return_string = str_replace("{{--btn_list--}}", $this->get_bbs_listButton($skin_array_view), $return_string);
+		$return_string = str_replace("{{--btn_edit--}}", $this->get_bbs_editButton($skin_array_view), $return_string);
+		$return_string = str_replace("{{--btn_del--}}", $this->get_bbs_delButton($skin_array_view), $return_string);
+		$return_string = str_replace("{{--link--}}", $this->get_bbs_link($skin_array_view), $return_string);
+
+		return $return_string;
+	}
+
+	public function get_form()
+	{
+		global $skin_array_form, $skin, $idx, $param, $file_upload_path, $file_upload_path_editor;
+
+		$return_string = str_replace("{{--subject--}}", $this->get_bbs_subject($skin_array_form), $skin);
+		$return_string = str_replace("{{--name--}}", $this->get_bbs_name($skin_array_form), $return_string);
+		$return_string = str_replace("{{--content--}}", $this->get_bbs_content($skin_array_form), $return_string);
+		$return_string = str_replace("{{--sub_content--}}", $this->get_bbs_subContent($skin_array_form), $return_string);
+		$return_string = str_replace("{{--password--}}", $this->get_bbs_password($skin_array_form), $return_string);
+		$return_string = str_replace("{{--up_thumb--}}", $this->get_bbs_thumbName($skin_array_form), $return_string);
+		$return_string = str_replace("{{--file_upload--}}", $this->get_bbs_fileUpload($skin_array_form), $return_string);
+		$return_string = str_replace("{{--max_file_bytesize--}}", ($this->bbs_cfg["max_file_size"] * 1024 * 1024), $return_string);
+		$return_string = str_replace("{{--max_file_size--}}", $this->bbs_cfg["max_file_size"], $return_string);
+
+		$return_string = str_replace("{{--search_action_url--}}", "/board/proc/".$this->bbs_id, $return_string);
+		$return_string = str_replace("{{--mode--}}", (empty($idx) ? "add" : "edit"), $return_string);
+		$return_string = str_replace("{{--file_upload_path--}}", $file_upload_path, $return_string);
+		$return_string = str_replace("{{--file_upload_path_editor--}}", $file_upload_path_editor, $return_string);
+		$return_string = str_replace("{{--idx--}}", $idx, $return_string);
+		if(count((array)$param) > 0)
+		{
+			$hiddenHTML = "";
+			foreach($param as $key => $value)
+			{
+				$hiddenHTML .= "<input type=\"hidden\" name=\"".$key."\" value=\"".$value."\" />";
+			}
+
+			$return_string = str_replace("{{--hidden--}}", $hiddenHTML, $return_string);
+		}
+		else
+		{
+			$return_string = str_replace("{{--hidden--}}", "", $return_string);
+		}
+		$return_string = str_replace("{{--list_link--}}", "/board/list/".$this->bbs_id.set_parameter($this->bbs_param), $return_string);
+		$return_string = str_replace("{{--submit_text--}}", (empty($idx) ? "등록" : "수정"), $return_string);
+
+		return $return_string;
+	}
+
+	public function get_bbs_faq_category()
+	{
+		global $skin_array_list, $faq, $param;
+
+		$return_string = "";
+		if(count((array)$faq) > 0)
+		{
+			array_unshift($faq, "전체");
+
+			$skinHTML = "";
+			$i = 0;
+			foreach($faq as $key => $value)
+			{
+				$link = "/board/list/".$this->bbs_id;
+				if($i > 0)
+				{
+					$link .= "?s_category=".$key;
+				}
+				if(isset($param["s_value"]) === true)
+				{
+					$link .= "&s_value=".urlencode($param["s_value"]);
+				}
+
+				$thisActive = "";
+				if($key == $param["s_key"])
+				{
+					$thisActive = " class=\"active\"";
+				}
+				$skinHTML = str_replace("{{--category_subject--}}", $value, $skin_array_list["faq_category"]);
+				$skinHTML = str_replace("{{--category_link--}}", $link, $skinHTML);
+				$skinHTML = str_replace("{{--category_active--}}", $thisActive, $skinHTML);
+
+				$return_string .= $skinHTML;
+				$skinHTML = "";
+				$i++;
+			}
+		}
+
+		return $return_string;
+	}
+
+	public function get_bbs_thumbName($skin_array, $seq="")
+	{
+		global $cls_db;
+
+		$return_string = "";
+		if(in_array("up_thumb", array_keys($skin_array)))
+		{
+			if(!empty($this->get_bbs_column("idx", $seq)))
+			{
+				$board_file = $cls_db->sql_fetch("SELECT `idx`, `saved_file`, `uploaded_file`, `file_size` FROM `board_file` WHERE `board_data_idx`=".$this->get_bbs_column("idx", $seq)." AND `image_type`='thumb'");
+				if(count((array)$board_file["idx"]) > 0)
+				{
+					$return_string = str_replace("{{--up_thumb_idx--}}", $board_file["idx"], $skin_array["up_thumb"]);
+					$return_string = str_replace("{{--up_thumb_name--}}", $board_file["uploaded_file"], $return_string);
+				}
+			}
+		}
+
+		return $return_string;
+	}
+
+	public function get_bbs_fileUpload($skin_array, $seq="")
+	{
+		global $cls_db;
+
+		if($this->bbs_cfg["use_file"] == "n")
+		{
+			return "";
+		}
+
+		$return_string = $skin_array["file_upload"];
+		if(in_array("file_upload", array_keys($skin_array)))
+		{
+			$upfilesHTML = "";
+			if(!empty($this->get_bbs_column("idx", $seq)))
+			{
+				$board_file = $cls_db->sql_fetch_array("SELECT `idx`, `saved_file`, `uploaded_file`, `file_size` FROM `board_file` WHERE `board_data_idx`=".$this->get_bbs_column("idx", $seq)." AND `image_type`='sub'");
+				if(count((array)$board_file["idx"]) > 0)
+				{
+					$upfilesHTML = "";
+					for($i=0; $i<count($board_file["idx"]); $i++)
+					{
+						$skinHTML = str_replace("{{--up_files--}}", $board_file["uploaded_file"][$i], $skin_array["up_files"]);
+						$skinHTML = str_replace("{{--up_file_idx--}}", $board_file["idx"][$i], $skinHTML);
+
+						$upfilesHTML .= $skinHTML;
+						$skinHTML = "";
+					}
+				}
+			}
+			$return_string = str_replace("{{--up_files--}}", $upfilesHTML, $return_string);
+
+			$return_string = str_replace("{{--max_file_bytesize--}}", ($this->bbs_cfg["max_file_size"] * 1024 * 1024), $return_string);
+			$return_string = str_replace("{{--use_file_num--}}", $this->bbs_cfg["use_file_num"], $return_string);
+			$return_string = str_replace("{{--max_file_size--}}", $this->bbs_cfg["max_file_size"], $return_string);
+		}
+
+		return $return_string;
+	}
+
+	public function get_bbs_rownum($skin_array, $seq="")
+	{
+		if($this->bbs_mode == "notice")
+		{
+			$return_string = "<em class=\"noti-icon fas fa-thumbtack\"></em>";
+		}
+		else
+		{
+			$return_string = $this->bbs_rownum - $seq;
+		}
+
+		return $return_string;
+	}
+
+	public function get_bbs_viewLink($skin_array, $seq="")
+	{
+		global $_SESSION, $_SERVER;
+
+		// 접근제한 ip
+		if($this->bbs_cfg["use_forbidden_ip"] == "y")
+		{
+			$exp_ip = @explode(",", $this->bbs_cfg["forbidden_ip"]);
+
+			if(count((array)$exp_ip) > 0 && in_array($_SERVER["REMOTE_ADDR"], $exp_ip))
+			{
+				if($this->bbs_cfg["forbidden_ip_type"] == "list")
+				{
+					// list이면 목록만 보임
+					return "javascript:alert('접근제한된 IP입니다.');";
+				}
+			}
+		}
+
+		// 상세보기 접근권한
+		if(check_permission($this->bbs_cfg["view_grade"]) === false)
+		{
+			return "javascript:alert('상세 페이지 접근권한이 없습니다.');";
+		}
+
+		$return_string = "";
+		if($this->get_bbs_column("secret_flag", $seq) == "n" || $this->get_bbs_column("add_id", $seq) == $_SESSION["ss_user_id"])
+		{
+			$return_string .= "/board/view/".$this->bbs_id.set_parameter("&idx=".$this->get_bbs_column("idx", $seq), $this->bbs_param);
+		}
+		else
+		{
+			$return_string .= "javascript:pass_layer(".$this->get_bbs_column("idx", $seq).", 'view');";
+		}
+
+		return $return_string;
+	}
+
+	public function get_bbs_subject($skin_array, $seq="")
+	{
+		if(in_array("subject", array_keys($skin_array)))
+		{
+			$return_string = str_replace("{{--subject--}}", $this->get_bbs_column("subject", $seq), $skin_array["subject"]);
+		}
+		else
+		{
+			$return_string = $this->get_bbs_column("subject", $seq);
+		}
+
+		return $return_string;
+	}
+
+	public function get_bbs_secretFlag($skin_array, $seq="")
+	{
+		if(in_array("secret_flag", array_keys($skin_array)))
+		{
+			if($this->get_bbs_column("secret_flag", $seq) == "y")
+			{
+				$return_string = $skin_array["secret_flag"];
+			}
+			else
+			{
+				$return_string = "";
+			}
+		}
+		else
+		{
+			$return_string = $this->get_bbs_column("secret_flag", $seq);
+		}
+
+		return $return_string;
+	}
+
+	public function get_bbs_commentCount($skin_array, $seq="")
+	{
+		$return_string = "";
+		if($this->bbs_cfg["use_comment"] == "y")
+		{
+			if($this->get_bbs_column("comment_count", $seq) > 0)
+			{
+				if(in_array("comment_count", array_keys($skin_array)))
+				{
+					$return_string = str_replace("{{--comment_count--}}", number_format($this->get_bbs_column("comment_count", $seq)), $skin_array["comment_count"]);
+				}
+				else
+				{
+					$return_string = number_format($this->get_bbs_column("comment_count", $seq));
+				}
+			}
+		}
+
+		return $return_string;
+	}
+
+	public function get_bbs_attachIcon($skin_array, $seq="")
+	{
+		if(in_array("attach_icon", array_keys($skin_array)))
+		{
+			if($this->get_bbs_column("is_attach", $seq) == "y")
+			{
+				$return_string = $skin_array["attach_icon"];
+			}
+			else
+			{
+				$return_string = "";
+			}
+		}
+		else
+		{
+			$return_string = $this->get_bbs_column("is_attach", $seq);
+		}
+
+		return $return_string;
+	}
+
+	public function get_bbs_newIcon($skin_array, $seq="")
+	{
+		$return_string = "";
+		if(in_array("new_icon", array_keys($skin_array)))
+		{
+			if(strtotime($this->get_bbs_column("add_date", $seq)) > strtotime("-".$this->bbs_cfg["new_article_day"]." days"))
+			{
+				$return_string = $skin_array["new_icon"];
+			}
+		}
+		else
+		{
+			if(strtotime($this->get_bbs_column("add_date", $seq)) > strtotime("-".$this->bbs_cfg["new_article_day"]." days"))
+			{
+				$return_string = "<span class=\"icon-group\"><em class=\"icon-new\">NEW</em></span>";
+			}
+		}
+
+		return $return_string;
+	}
+
+	public function get_bbs_name($skin_array, $seq="")
+	{
+		global $_SESSION;
+
+		if(in_array("name", array_keys($skin_array)))
+		{
+			if(isLogin() === true)
+			{
+				if(empty($this->get_bbs_column("idx", $seq)))//등록 페이지
+				{
+					$return_string = str_replace("{{--name--}}", $_SESSION["ss_user_name"], $skin_array["name"]["member"]);
+				}
+				else//수정 페이지
+				{
+					$return_string = str_replace("{{--name--}}", $this->get_bbs_column("name", $seq), $skin_array["name"]["member"]);
+				}
+			}
+			else
+			{
+				if(empty($this->get_bbs_column("idx", $seq)))//등록 페이지
+				{
+					$return_string = str_replace("{{--name--}}", "", $skin_array["name"]["guest"]);
+				}
+				else//수정 페이지
+				{
+					$return_string = str_replace("{{--name--}}", $this->get_bbs_column("name", $seq), $skin_array["name"]["guest"]);
+				}
+			}
+		}
+		else
+		{
+			$return_string = $this->get_bbs_column("name", $seq);
+		}
+
+		return $return_string;
+	}
+
+	public function get_bbs_addDate($skin_array, $seq="")
+	{
+		if(in_array("add_date", array_keys($skin_array)))
+		{
+			$return_string = str_replace("{{--add_date--}}", date("Y.m.d", strtotime($this->get_bbs_column("add_date", $seq))), $skin_array["add_date"]);
+		}
+		else
+		{
+			$return_string = date("Y.m.d", strtotime($this->get_bbs_column("add_date", $seq)));
+		}
+
+		return $return_string;
+	}
+
+	public function get_bbs_hitCount($skin_array, $seq="")
+	{
+		if(in_array("hit_count", array_keys($skin_array)))
+		{
+			$return_string = str_replace("{{--hit_count--}}", number_format($this->get_bbs_column("hit_count", $seq)), $skin_array["hit_count"]);
+		}
+		else
+		{
+			$return_string = number_format($this->get_bbs_column("hit_count", $seq));
+		}
+
+		return $return_string;
+	}
+
+	public function get_bbs_content($skin_array, $seq="")
+	{
+		if(in_array("content", array_keys($skin_array)))
+		{
+			$return_string = str_replace("{{--content--}}", $this->get_bbs_column("content", $seq), $skin_array["content"]);
+		}
+		else
+		{
+			$return_string = $this->get_bbs_column("content", $seq);
+		}
+
+		return $return_string;
+	}
+
+	public function get_bbs_subContent($skin_array, $seq="")
+	{
+		if(in_array("sub_content", array_keys($skin_array)))
+		{
+			$return_string = str_replace("{{--sub_content--}}", $this->get_bbs_column("sub_content", $seq), $skin_array["sub_content"]);
+		}
+		else
+		{
+			$return_string = nl2br($this->get_bbs_column("sub_content", $seq));
+		}
+
+		return $return_string;
+	}
+
+	public function get_bbs_password($skin_array, $seq="")
+	{
+		$return_string = "";
+		if(isLogin() === false)
+		{
+			if(in_array("password", array_keys($skin_array)))
+			{
+				$return_string = $skin_array["password"];
+			}
+		}
+
+		return $return_string;
+	}
+
+	public function get_bbs_upFiles($skin_array, $seq="")
+	{
+		global $cls_db;
+
+		$return_string = "";
+		if(in_array("up_files", array_keys($skin_array)) && !empty($this->get_bbs_column("idx", $seq)))
+		{
+			$board_file = $cls_db->sql_fetch_array("SELECT `idx`, `saved_file`, `uploaded_file`, `file_size` FROM `board_file` WHERE `board_data_idx`=".$this->get_bbs_column("idx", $seq));
+			if(count((array)$board_file["idx"]) > 0)
+			{
+				for($i=0; $i<count($board_file["idx"]); $i++)
+				{
+					$skinHTML = str_replace("{{--up_files--}}", $board_file["uploaded_file"][$i], $skin_array["up_files"]);
+					$skinHTML = str_replace("{{--up_file_idx--}}", $board_file["idx"][$i], $skinHTML);
+
+					$return_string .= $skinHTML;
+					$skinHTML = "";
+				}
+			}
+		}
+		return $return_string;
+	}
+
+	public function get_bbs_upFilePlus($skin_array, $seq="")
+	{
+		if(in_array("up_file_plus", array_keys($skin_array)) && $this->bbs_cfg["use_file"] == "y" && $this->bbs_cfg["use_file_num"] > 1)
+		{
+			$return_string = str_replace("{{--use_file_num--}}", $this->bbs_cfg["use_file_num"], $skin_array["up_file_plus"]);
+		}
+		else
+		{
+			$return_string = "";
+		}
+
+		return $return_string;
+	}
+
+	public function get_bbs_filenameList($skin_array, $seq="")
+	{
+		global $cls_db;
+
+		$return_string = "";
+		if($this->bbs_cfg["use_file"] == "y")
+		{
+			if(in_array("filename_list", array_keys($skin_array)))
+			{
+				$thumbs = $cls_db->sql_fetch_array("SELECT `idx`, `saved_file`, `uploaded_file`, `file_extension` FROM `board_file` WHERE `board_data_idx`=".$this->get_bbs_column("idx", $seq));
+				if(count((array)$thumbs["idx"]) > 0)
+				{
+					$filename_list = "";
+					for($i=0; $i<count($thumbs["idx"]); $i++)
+					{
+						$filename_list .= "<a href=\"".CFG_PUBLIC_PATH."/uploadFiles/board_data/".$this->bbs_id."/".$this->get_bbs_column("file_upload_path", $seq)."/".$thumbs["saved_file"][$i]."\" download=\"".$thumbs["uploaded_file"][$i]."\">".$thumbs["uploaded_file"][$i]."</a>";
+					}
+
+					if(!empty($filename_list))
+					{
+						$return_string = str_replace("{{--filename_list--}}", $filename_list, $skin_array["filename_list"]);
+					}
+				}
+			}
+		}
+
+		return $return_string;
+	}
+
+	public function get_bbs_thumbnail($seq="")
+	{
+		global $skin_array_list;
+
+		if(file_exists(CFG_PUBLIC_PATH_ABS."/uploadFiles/board_data/".$this->bbs_id."/".$this->get_bbs_column("file_upload_path", $seq)."/".$this->get_bbs_column("thumb", $seq)))
+		{
+			$return_string = CFG_PUBLIC_PATH."/uploadFiles/board_data/".$this->bbs_id."/".$this->get_bbs_column("file_upload_path", $seq)."/".$this->get_bbs_column("thumb", $seq);
+		}
+		else
+		{
+			$return_string = CFG_PUBLIC_PATH."/images/product/no_img.png";
+		}
+
+		return $return_string;
+	}
+
+	public function get_bbs_prevData($skin_array, $seq="")
+	{
+		global $_SESSION, $cls_db;
+
+		$return_string = "";
+		if($this->bbs_cfg["use_secret"] == "n")
+		{
+			$prev_data = $cls_db->sql_fetch("
+			SELECT `idx`, `subject`, `secret_flag`, `add_id`
+			 FROM `board_data`
+			 WHERE `board_id`='".$this->bbs_id."'
+			 AND `idx`<".$this->get_bbs_column("idx", $seq)."
+			 ORDER BY `idx` DESC
+			 LIMIT 1
+			");
+			if(count((array)$prev_data["idx"]) > 0)
+			{
+				$prev_link = "/board/view/".$this->bbs_id."&idx=".$prev_data["idx"];
+
+				if($prev_data["secret_flag"] == "y")
+				{
+					if(!empty($prev_data["add_id"]))//아이디가 있는지 없는지 구분 필요(비회원은 add_id가 들어가지 않기 때문)
+					{
+						if($prev_data["add_id"] != $_SESSION["ss_user_id"])//본인이 작성한 글일때
+						{
+							$prev_link = "javascript:pass_layer(".$prev_data["idx"].", 'view');";
+						}
+					}
+					else
+					{
+						$prev_link = "javascript:pass_layer(".$prev_data["idx"].", 'view');";
+					}
+				}
+
+				if(in_array("prev_data", array_keys($skin_array)))
+				{
+					$return_string = str_replace("{{--prev_data--}}", $prev_link, $skin_array["prev_data"]);
+					$return_string = str_replace("{{--prev_subject--}}", $prev_data["subject"], $return_string);
+				}
+				else
+				{
+					$return_string = "<a href=\"".$prev_link."\">".$prev_data["subject"]."</a>";
+				}
+			}
+		}
+
+		return $return_string;
+	}
+
+	public function get_bbs_nextData($skin_array, $seq="")
+	{
+		global $_SESSION, $cls_db;
+
+		$return_string = "";
+		if($this->bbs_cfg["use_secret"] == "n")
+		{
+			$next_data = $cls_db->sql_fetch("
+			SELECT `idx`, `subject`, `secret_flag`, `add_id`
+			 FROM `board_data`
+			 WHERE `board_id`='".$this->bbs_id."'
+			 AND `idx`>".$this->get_bbs_column("idx", $seq)."
+			 ORDER BY `idx` ASC
+			 LIMIT 1
+			");
+
+			if(count((array)$next_data["idx"]) > 0)
+			{
+				$next_link = "/board/view/".$this->bbs_id."&idx=".$next_data["idx"];
+
+				if($next_data["secret_flag"] == "y")
+				{
+					if(!empty($next_data["add_id"]))//아이디가 있는지 없는지 구분 필요(비회원은 add_id가 들어가지 않기 때문)
+					{
+						if($next_data["add_id"] != $_SESSION["ss_user_id"])//본인이 작성한 글일때
+						{
+							$next_link = "javascript:pass_layer(".$next_data["idx"].", 'view');";
+						}
+					}
+					else
+					{
+						$next_link = "javascript:pass_layer(".$next_data["idx"].", 'view');";
+					}
+				}
+
+				if(in_array("next_data", array_keys($skin_array)))
+				{
+					$return_string = str_replace("{{--next_data--}}", $next_link, $skin_array["next_data"]);
+					$return_string = str_replace("{{--next_subject--}}", $next_data["subject"], $return_string);
+				}
+				else
+				{
+					$return_string = "<a href=\"".$next_link."\">".$next_data["subject"]."</a>";
+				}
+			}
+		}
+
+		return $return_string;
+	}
+
+	public function get_moreBtn($skin_array)
+	{
+
+		$return_string = "";
+
+		if($this->bbs_cnt >= $this->bbs_cfg["list_max"])
+		{
+			$return_string = $skin_array["more_btn"];
+		}
+
+		return $return_string;
+	}
+
+	public function get_bbs_addButton($skin_array)
+	{
+		global $_SERVER;
+
+		$add_flag = true;
+		// 접근제한 ip
+		if($this->bbs_cfg["use_forbidden_ip"] == "y")
+		{
+			$exp_ip = @explode(",", $this->bbs_cfg["forbidden_ip"]);
+
+			if(count((array)$exp_ip) > 0 && in_array($_SERVER["REMOTE_ADDR"], $exp_ip))
+			{
+				if($this->bbs_cfg["forbidden_ip_type"] == "list")//list이면 목록만 보임
+				{
+					$add_flag = false;
+				}
+			}
+		}
+
+		// 등록 접근권한
+		if(check_permission($this->bbs_cfg["add_grade"]) === false)
+		{
+			$add_flag = false;
+		}
+
+		$return_string = "";
+		if($this->bbs_cfg["use_add"] == "y" && $add_flag === true)
+		{
+			$add_link = "/board/form/".$this->bbs_id.set_parameter($this->bbs_param);
+			if(in_array("add_btn", array_keys($skin_array)))
+			{
+				$return_string = str_replace("{{--add_link--}}", $add_link, $skin_array["add_btn"]);
+			}
+			else
+			{
+				$return_string = "<a href=\"#null\" onclick=\"Go('".$add_link."'); return false;\">글쓰기</a>";
+			}
+		}
+
+		return $return_string;
+	}
+
+	public function get_bbs_listButton($skin_array)
+	{
+		$list_link = "/board/list/".$this->bbs_id.set_parameter($this->bbs_param);
+		if(in_array("btn_list", array_keys($skin_array)))
+		{
+			$return_string = str_replace("{{--btn_list--}}", $list_link, $skin_array["btn_list"]);
+		}
+		else
+		{
+			$return_string = "<a href=\"#null\" onclick=\"Go('".$list_link."'); return false;\">목록</a>";
+		}
+
+		return $return_string;
+	}
+
+	public function get_bbs_editButton($skin_array, $seq="")
+	{
+		global $_SESSION;
+
+		$return_string = "";
+		if($this->bbs_cfg["use_edit"] == "y" && check_permission($this->bbs_cfg["edit_grade"]) === true)
+		{
+			$edit_link = "";
+			if(isLogin() === true && $_SESSION["ss_user_id"] == $this->get_bbs_column("add_id", $seq))
+			{
+				$edit_link = "Go('/board/form/".$this->bbs_id.set_parameter("&idx=".$this->get_bbs_column("idx", $seq), $this->bbs_param)."');";
+			}
+			else if(empty($this->get_bbs_column("add_id", $seq)))
+			{
+				$edit_link = "open_layerPopup('/board/password/".$this->bbs_id.set_parameter("&idx=".$this->get_bbs_column("idx", $seq)."&return_mode=edit", $this->bbs_param)."', 'layer-password');";
+			}
+
+			if(!empty($edit_link))
+			{
+				if(in_array("btn_edit", array_keys($skin_array)))
+				{
+					$return_string = str_replace("{{--btn_edit--}}", $edit_link, $skin_array["btn_edit"]);
+				}
+				else
+				{
+					$return_string = "<a href=\"#null\" onclick=\"".$edit_link." return false;\">수정</a>";
+				}
+			}
+		}
+
+		return $return_string;
+	}
+
+	public function get_bbs_delButton($skin_array, $seq="")
+	{
+		global $_SESSION;
+
+		$return_string = "";
+		if($this->bbs_cfg["use_del"] == "y" && check_permission($this->bbs_cfg["del_grade"]) === true)
+		{
+			$del_link = "";
+			if(isLogin() === true && $_SESSION["ss_user_id"] == $this->get_bbs_column("add_id", $seq))
+			{
+				$del_link = "Go_del('/board/proc/".$this->bbs_id.set_parameter("&idx=".$this->get_bbs_column("idx", $seq)."&mode=del", $this->bbs_param)."');";
+			}
+			else if(empty($this->get_bbs_column("add_id", $seq)))
+			{
+				$del_link = "open_layerPopup('/board/password/".$this->bbs_id.set_parameter("&idx=".$this->get_bbs_column("idx", $seq)."&return_mode=del", $this->bbs_param)."', 'layer-password');";
+			}
+
+			if(!empty($del_link))
+			{
+				if(in_array("btn_del", array_keys($skin_array)))
+				{
+					$return_string = str_replace("{{--btn_del--}}", $del_link, $skin_array["btn_del"]);
+				}
+				else
+				{
+					$return_string = "<a href=\"#null\" onclick=\"".$del_link." return false;\">삭제</a>";
+				}
+			}
+		}
+
+		return $return_string;
+	}
+
+	public function get_bbs_link($skin_array, $seq="")
+	{
+		global $_SESSION;
+
+		$return_string = "";
+
+		if (in_array($this->bbs_id, array("release", "gallery")))
+		{
+			if(in_array("link", array_keys($skin_array)))
+			{
+				if (!empty($this->get_bbs_column("link", $seq)))
+				{
+					$link = $this->get_bbs_column("link", $seq);
+					if(!preg_match("/http/", $this->get_bbs_column("link", $seq)))
+					{
+						$link = "http://".$link;
+					}
+					$return_string = str_replace("{{--href--}}", $link, $skin_array["link"]);
+					$return_string = str_replace("{{--href2--}}", $this->get_bbs_column("link", $seq), $return_string);
+				}
+			}
+		}
+
+
+		return $return_string;
+	}
+
+	/**
+	 * 게시물 댓글 목록 초기화
+	 * @param String $cmt_param 인자값
+	 * @param Array $cmt_list 댓글 목록 배열
+	 * @param Array $bbs_cfg 게시판 설정 배열
+	 * @param Int $cmt_cnt 전체 댓글 수
+	 */
+	public function init_cmt($bbs_id="", $cmt_param="", $cmt_list=array(), $bbs_cfg=array(), $cmt_cnt=0)
+	{
+		$this->bbs_id = $bbs_id;
+		$this->cmt_param = $cmt_param;
+		$this->cmt_list = $cmt_list;
+		$this->bbs_cfg = $bbs_cfg;
+		$this->cmt_cnt = $cmt_cnt;
+	}
+
+	public function get_cmt_column($column, $seq="")
+	{
+		$this_array = array();
+		if(count((array)$this->inCmt_list["idx"]) > 0)
+		{
+			$this_array = $this->inCmt_list;
+		}
+		else
+		{
+			$this_array = $this->cmt_list;
+		}
+
+		if(is_array($this_array[$column]))
+		{
+			return $this_array[$column][$seq];
+		}
+		else
+		{
+			return $this_array[$column];
+		}
+	}
+
+	public function get_comment()
+	{
+		global $default_skin, $list_skin, $innerList_skin, $_SESSION;
+
+		$return_string = str_replace("{{--cmt_cnt--}}", number_format($this->cmt_cnt), $default_skin);
+		$return_string = str_replace("{{--action_url--}}", "/board/proc/".$this->bbs_id, $return_string);
+		$return_string = str_replace("{{--board_id--}}", $this->bbs_id, $return_string);
+		$return_string = str_replace("{{--username--}}", $_SESSION["ss_user_name"], $return_string);
+		$return_string = str_replace("{{--user_field--}}", $this->get_cmt_userField(), $return_string);
+		$return_string = str_replace("{{--list_skin--}}", $this->get_listSkin(), $return_string);
+
+		return $return_string;
+	}
+
+	public function get_cmt_userField()
+	{
+		global $skin_array_cmt;
+
+		if(in_array("user_field", array_keys($skin_array_cmt)))
+		{
+			if(isLogin() === true)
+			{
+				$return_string = str_replace("{{--user_field--}}", $_SESSION["ss_user_name"], $skin_array_cmt["user_field"]["member"]);
+			}
+			else
+			{
+				$return_string = $skin_array_cmt["user_field"]["guest"];
+			}
+		}
+		else
+		{
+			$return_string = "";
+		}
+
+		return $return_string;
+	}
+
+	public function get_listSkin()
+	{
+		global $list_skin;
+
+		$return_string = "";
+		if(count((array)$this->cmt_list["idx"]) > 0)
+		{
+			for($i=0; $i<count($this->cmt_list["idx"]); $i++)
+			{
+				$skinHTML = str_replace("{{--comment_content--}}", $this->get_commentContent($i), $list_skin);
+				$skinHTML = str_replace("{{--reply_count--}}", $this->get_replyCount($i), $skinHTML);
+				$skinHTML = str_replace("{{--edit_btn--}}", $this->get_editBtn($i), $skinHTML);
+				$skinHTML = str_replace("{{--del_btn--}}", $this->get_delBtn($i), $skinHTML);
+				$skinHTML = str_replace("{{--reply_btn--}}", "", $skinHTML);
+				$skinHTML = str_replace("{{--idx--}}", $this->get_cmt_column("idx", $i), $skinHTML);
+				if($this->get_cmt_column("in_cmt", $i) > 0)
+				{
+					$skinHTML = str_replace("{{--inner_list_skin--}}", $this->get_innerListSkin($i), $skinHTML);
+				}
+				else
+				{
+					$skinHTML = str_replace("{{--inner_list_skin--}}", "", $skinHTML);
+				}
+
+				$return_string .= $skinHTML;
+				$skinHTML = "";
+			}
+		}
+
+		return $return_string;
+	}
+
+	public function get_commentContent($seq="")
+	{
+		global $skin_array_cmt;
+
+		if(in_array("comment_content", array_keys($skin_array_cmt)))
+		{
+			if($this->get_cmt_column("status", $seq) == "live")
+			{
+				$return_string = str_replace("{{--name--}}", $this->get_cmt_column("name", $seq), $skin_array_cmt["comment_content"]["live"]);
+				$return_string = str_replace("{{--idx--}}", $this->get_cmt_column("idx", $seq), $return_string);
+				$return_string = str_replace("{{--add_date--}}", $this->get_cmt_column("add_date", $seq), $return_string);
+				$return_string = str_replace("{{--comment--}}", nl2br($this->get_cmt_column("comment", $seq)), $return_string);
+			}
+			else
+			{
+				$return_string = $skin_array_cmt["comment_content"]["else"];
+			}
+		}
+		else
+		{
+			$return_string = "";
+		}
+
+		return $return_string;
+	}
+
+	public function get_replyCount($seq="")
+	{
+		global $skin_array_cmt;
+
+		$return_string = "";
+		if(in_array("reply_count", array_keys($skin_array_cmt)))
+		{
+			if(check_permission($this->bbs_cfg["comment_reply_grade"]) === true)
+			{
+				$open_reply_link = "open_reply_form('".$this->get_cmt_column("idx", $seq)."', '".$this->get_cmt_column("parent_idx", $seq)."', '".$this->get_cmt_column("name", $seq)."', '".(isLogin()===true ? "member" : "guest")."', '".$this->get_cmt_column("in_cmt", $seq)."');";
+
+				$return_string = str_replace("{{--idx--}}", $this->get_cmt_column("idx", $seq), $skin_array_cmt["reply_count"]);
+				$return_string = str_replace("{{--open_reply_link--}}", $open_reply_link, $return_string);
+				$return_string = str_replace("{{--in_cmt--}}", $this->get_cmt_column("in_cmt", $seq), $return_string);
+			}
+		}
+
+		return $return_string;
+	}
+
+	public function get_innerListSkin($seq="")
+	{
+		global $cls_db, $param, $innerList_skin, $skin_array_cmt, $_SESSION;
+
+		$return_string = "";
+		$row = $this->get_list_boardComment(array(
+			"s_boardDataIdx"=>$this->get_cmt_column("board_data_idx", $seq),
+			"s_boardId"=>$this->bbs_id,
+			"s_parentIdx"=>$this->get_cmt_column("idx", $seq),
+			"s_delFlag"=>"n",
+			"s_status"=>"live",
+			"s_originalComment"=>"n",
+			"orderby"=>"`group_idx` ".$param["sort"].", `add_date` ASC"
+		));
+		if(count((array)$row["idx"]) > 0)
+		{
+			for($i=0; $i<count($row["idx"]); $i++)
+			{
+				$skinHTML = $innerList_skin;
+				if(in_array("comment_content", array_keys($skin_array_cmt)))
+				{
+					if($row["status"][$i] == "live")
+					{
+						$innerHTML = str_replace("{{--name--}}", $row["name"][$i], $skin_array_cmt["comment_content"]["live"]);
+						$innerHTML = str_replace("{{--add_date--}}", $row["add_date"][$i], $innerHTML);
+						$innerHTML = str_replace("{{--comment--}}", nl2br($row["comment"][$i]), $innerHTML);
+						$innerHTML = str_replace("{{--idx--}}", $row["idx"][$i], $innerHTML);
+
+						if(in_array("reply_btn", array_keys($skin_array_cmt)))
+						{
+							$open_innerReply_link = "";
+
+							if(isLogin() === true && $row["status"][$i] == "live")
+							{
+								$open_innerReply_link = "open_innerReply_form('".$row["idx"][$i]."', '".$row["parent_idx"][$i]."', 'member');";
+							}
+							else
+							{
+								$open_innerReply_link = "open_innerReply_form('".$row["idx"][$i]."', '".$row["parent_idx"][$i]."', 'guest');";
+							}
+						}
+
+						if(empty($open_innerReply_link) === false)
+						{
+							$btnInnerReplyHTML = str_replace("{{--open_innerReply_link--}}", $open_innerReply_link, $skin_array_cmt["reply_btn"]);
+						}
+						else
+						{
+							$btnInnerReplyHTML = "";
+						}
+						$innerHTML = str_replace("{{--reply_btn--}}", $btnInnerReplyHTML, $innerHTML);
+					}
+					else
+					{
+						$innerHTML = $skin_array_cmt["comment_content"]["else"];
+					}
+
+					$skinHTML = str_replace("{{--comment_content--}}", $innerHTML, $skinHTML);
+				}
+
+				if(in_array("edit_btn", array_keys($skin_array_cmt)))
+				{
+					$open_edit_link = "";
+
+					if(isLogin() === true && $row["add_id"][$i] == $_SESSION["ss_user_id"] && $row["status"][$i] == "live")
+					{
+						$open_edit_link = "open_edit_form('".$row["idx"][$i]."', '".$row["parent_idx"][$i]."', 'member');";
+					}
+					else if(empty($row["add_id"][$i]) && $row["status"][$i] == "live")
+					{
+						$open_edit_link = "open_edit_form('".$row["idx"][$i]."', '".$row["parent_idx"][$i]."', 'guest');";
+					}
+				}
+
+				if(!empty($open_edit_link))
+				{
+					$btneditHTML = str_replace("{{--open_edit_link--}}", $open_edit_link, $skin_array_cmt["edit_btn"]);
+				}
+				else
+				{
+					$btneditHTML = "";
+				}
+				$skinHTML = str_replace("{{--edit_btn--}}", $btneditHTML, $skinHTML);
+
+				if(in_array("del_btn", array_keys($skin_array_cmt)))
+				{
+					$open_del_link = "";
+
+					if(isLogin() === true && $row["add_id"][$i] == $_SESSION["ss_user_id"] && $row["status"][$i] == "live")
+					{
+						$open_del_link = "comment_del('".$this->bbs_id."', '".$row["board_data_idx"][$i]."', '".$row["idx"][$i]."', 'member');";
+					}
+					else if(empty($row["add_id"][$i]) && $row["status"][$i] == "live")
+					{
+						$open_del_link = "open_layerPopup('/board/password/".$this->bbs_id."&idx=".$row["board_data_idx"][$i]."&comment_idx=".$row["idx"][$i]."&return_mode=cmt_del', 'layer-password');";
+					}
+				}
+
+				if(!empty($open_del_link))
+				{
+					$btndelHTML = str_replace("{{--open_del_link--}}", $open_del_link, $skin_array_cmt["del_btn"]);
+				}
+				else
+				{
+					$btndelHTML = "";
+				}
+				$skinHTML = str_replace("{{--del_btn--}}", $btndelHTML, $skinHTML);
+
+				$return_string .= $skinHTML;
+				$skinHTML = "";
+			}
+		}
+
+		return $return_string;
+	}
+
+	/**
+	 * 대댓글 목록 가져오기
+	 * @param String $board_id 게시판 코드
+	 * @param Int $b_uid 게시물 idx
+	 * @param Int $p_uid 원 댓글의 idx
+	 * @param String $sort 정렬코드
+	 */
+	public function get_comment_reply($board_id="", $b_uid=0, $p_uid=0, $sort="")
+	{
+		global $cls_db, $param, $innerList_skin, $skin_array_cmt, $_SESSION;
+
+		$return_string = "";
+		$row = $this->get_list_boardComment(array(
+			"s_boardDataIdx"=>$b_uid,
+			"s_boardId"=>$board_id,
+			"s_parentIdx"=>$p_uid,
+			"s_delFlag"=>"n",
+			"s_status"=>"live",
+			"s_originalComment"=>"n",
+			"orderby"=>"`group_idx` ".$sort.", `add_date` ASC"
+		));
+		if(count((array)$row["idx"]) > 0)
+		{
+			for($i=0; $i<count($row["idx"]); $i++)
+			{
+				$skinHTML = $innerList_skin;
+				if(in_array("comment_content", array_keys($skin_array_cmt)))
+				{
+					if($row["status"][$i] == "live")
+					{
+						$innerHTML = str_replace("{{--name--}}", $row["name"][$i], $skin_array_cmt["comment_content"]["live"]);
+						$innerHTML = str_replace("{{--add_date--}}", $row["add_date"][$i], $innerHTML);
+						$innerHTML = str_replace("{{--comment--}}", nl2br($row["comment"][$i]), $innerHTML);
+						$innerHTML = str_replace("{{--idx--}}", $row["idx"][$i], $innerHTML);
+					}
+					else
+					{
+						$innerHTML = $skin_array_cmt["comment_content"]["else"];
+					}
+
+					$skinHTML = str_replace("{{--comment_content--}}", $innerHTML, $skinHTML);
+				}
+
+				if(in_array("edit_btn", array_keys($skin_array_cmt)))
+				{
+					$open_edit_link = "";
+
+					if(isLogin() === true && $row["add_id"][$i] == $_SESSION["ss_user_id"] && $row["status"][$i] == "live")
+					{
+						$open_edit_link = "open_edit_form('".$row["idx"][$i]."', '".$row["parent_idx"][$i]."', 'member');";
+					}
+					else if(empty($row["add_id"][$i]) && $row["status"][$i] == "live")
+					{
+						$open_edit_link = "open_edit_form('".$row["idx"][$i]."', '".$row["parent_idx"][$i]."', 'guest');";
+					}
+				}
+
+				if(!empty($open_edit_link))
+				{
+					$btneditHTML = str_replace("{{--open_edit_link--}}", $open_edit_link, $skin_array_cmt["edit_btn"]);
+				}
+				else
+				{
+					$btneditHTML = "";
+				}
+				$skinHTML = str_replace("{{--edit_btn--}}", $btneditHTML, $skinHTML);
+
+				if(in_array("del_btn", array_keys($skin_array_cmt)))
+				{
+					$open_del_link = "";
+
+					if(isLogin() === true && $row["add_id"][$i] == $_SESSION["ss_user_id"] && $row["status"][$i] == "live")
+					{
+						$open_del_link = "comment_del('".$board_id."', '".$row["board_data_idx"][$i]."', '".$row["idx"][$i]."', 'member');";
+					}
+					else if(empty($row["add_id"][$i]) && $row["status"][$i] == "live")
+					{
+						$open_del_link = "open_layerPopup('/board/password/".$board_id."&idx=".$row["board_data_idx"][$i]."&comment_idx=".$row["idx"][$i]."&return_mode=cmt_del', 'layer-password');";
+					}
+				}
+
+				if(!empty($open_del_link))
+				{
+					$btndelHTML = str_replace("{{--open_del_link--}}", $open_del_link, $skin_array_cmt["del_btn"]);
+				}
+				else
+				{
+					$btndelHTML = "";
+				}
+				$skinHTML = str_replace("{{--del_btn--}}", $btndelHTML, $skinHTML);
+
+				$return_string .= $skinHTML;
+				$skinHTML = "";
+			}
+		}
+
+		return $return_string;
+	}
+
+	public function get_editBtn($seq="")
+	{
+		global $skin_array_cmt, $_SESSION;
+
+		if(in_array("edit_btn", array_keys($skin_array_cmt)))
+		{
+			$open_edit_link = "";
+
+			if(isLogin() === true && $this->get_cmt_column("add_id", $seq) == $_SESSION["ss_user_id"] && $this->get_cmt_column("status", $seq) == "live")
+			{
+				$open_edit_link = "open_edit_form('".$this->get_cmt_column("idx", $seq)."', '".$this->get_cmt_column("parent_idx", $seq)."', 'member');";
+			}
+			else if(empty($this->get_cmt_column("add_id", $seq)) && $this->get_cmt_column("status", $seq) == "live")
+			{
+				$open_edit_link = "open_edit_form('".$this->get_cmt_column("idx", $seq)."', '".$this->get_cmt_column("parent_idx", $seq)."', 'guest');";
+			}
+		}
+
+		if(!empty($open_edit_link))
+		{
+			$return_string = str_replace("{{--open_edit_link--}}", $open_edit_link, $skin_array_cmt["edit_btn"]);
+		}
+		else
+		{
+			$return_string = "";
+		}
+
+		return $return_string;
+	}
+
+	public function get_delBtn($seq="")
+	{
+		global $skin_array_cmt, $_SESSION;
+
+		if(in_array("edit_btn", array_keys($skin_array_cmt)))
+		{
+			$open_del_link = "";
+
+			if(isLogin() === true && $this->get_cmt_column("add_id", $seq) == $_SESSION["ss_user_id"] && $this->get_cmt_column("status", $seq) == "live")
+			{
+				$open_del_link = "comment_del('".$this->get_cmt_column("board_id", $seq)."', '".$this->get_cmt_column("board_data_idx", $seq)."', '".$this->get_cmt_column("idx", $seq)."', 'member');";
+			}
+			else if(empty($this->get_cmt_column("add_id", $seq)) && $this->get_cmt_column("status", $seq) == "live")
+			{
+				$open_del_link = "open_layerPopup('/board/password/".$this->get_cmt_column("board_id", $seq)."&idx=".$this->get_cmt_column("board_data_idx", $seq)."&comment_idx=".$this->get_cmt_column("idx", $seq)."&return_mode=cmt_del', 'layer-password');";
+			}
+		}
+
+		if(!empty($open_del_link))
+		{
+			$return_string = str_replace("{{--open_del_link--}}", $open_del_link, $skin_array_cmt["del_btn"]);
+		}
+		else
+		{
+			$return_string = "";
+		}
+
+		return $return_string;
+	}
+}
+?>

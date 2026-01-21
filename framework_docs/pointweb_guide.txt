@@ -1,0 +1,20 @@
+1. 사이트에 접속하면 www아래의 index.php파일이 가장 먼저 열리게된다.
+2. /_include/common.php 에서 /_library/config.php 를 호출한다.
+3. /_library/config.php는 해당 프레임워크에서 사용되는 전역변수, DB계정 정보 등을 선언한 파일이다.
+4. /_library/function.php는 해당프레임워크 내에서 사용되는 다양한 종류의 함수를 선언해놓은 파일이다.
+5. 선언되어있지않은 php함수는 function.php에서 찾아서 이해하면된다.
+6. _model 폴더에는 새로운 프로젝트를 기획 할 때 마다 DB의 테이블 구조에맞게 클래스 파일을 생성,추가한다.
+7. 클래스나 다른 파일에서 사용되는 db관련 함수는 모두 _model/class.db_query.php 파일에 선언되어있다.
+8. index.php파일에 선언되어있듯 '사이트도메인/폴더/파일' 과같은 형태로 접근한다.
+9. 게시판의경우 '사이트도메인/폴더/파일/게시판ID' 형태로 접근된다.
+10. 페이지가 쌓이는 순서는 크게 1. header.php 2. _controller내의 파일 3. menu_top.php 4. _view내의 파일(_controller내의 파일과 같은 이름.htm) 5. menu_bottom.php
+11. header.php에는 외부 스크립트, css파일등 페이지를 보여주는데 필요한 전반적인 파일을 호출한다.
+12. 디자인에 직접적인 연관이있는 css파일은 commonui1.css, contents1.css, commonui2.css, contents2.css 등이있다.
+13. 사용자페이지에 사용되는 모든 css파일은 /_public/css 폴더내에 있다.
+14. 페이지 전역에서 사용하는 js함수는 commonui1.js, commonui2.js, pointweb.js 등이 있다.
+
+[관리자모드]
+1. 관리자모드는 www아래의 pwmngr.php 파일로 최초 접근된다.
+2. 관리자모드도 index.php와 유사한 형태로 구성되어있다.
+3. 관리자 주소는 도메인/pwmngr.php?folder=폴더명&page=파일명 의 패턴을 가진다.
+4. 관리자모드에 사용되는 css파일은 /_controller/pwmngr/_css 폴더내에있다.

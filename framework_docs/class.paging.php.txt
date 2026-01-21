@@ -1,0 +1,179 @@
+<?php
+//페이징처리를 위한 모델 파일
+class paging
+{
+	protected $list_max; //리스트 출력 수량
+	protected $paging_max; //페이지 출력 수량
+
+	protected $paging; //현재 페이지
+	protected $total_count; //전체 페이지
+	protected $startNum; //DB 에서 가져올 게시물 첫번째 번호
+
+	protected $site_url; //페이지 적용할 사이트 URL
+	protected $url_option; // URL 옵션
+
+	protected $total_index; //게시물 번호 추출 카운터
+	protected $seek; //게시물 번호 추출용 공식
+
+	protected $skin; // 스킨명
+
+	/**
+	 * 초기화
+	 */
+	public function init($total_count, $paging, $list_max, $paging_max, $site_url, $url_option, $skin)
+	{
+			list($folder, $page, $board_id) = explode("/", substr($site_url, 1));
+			if(strpos($page, "&") > -1)
+			{
+				$page = substr($page, 0, strpos($page, "&"));
+			}
+
+		// echo "리스트맥스 : " . $list_max;
+		$this->list_max = $list_max; //한페이지에 표시할 리스트 수
+		$this->paging_max = $paging_max; // 페이지 링크표시단위
+		$this->total_count = $total_count; // 총 게시물 수
+
+		// print_a($this->total_count);
+
+		if(!$paging)
+		{
+			$this->paging = 1;
+		}
+		else
+		{
+			$this->paging = $paging;
+		}
+
+		$this->seek = ($this->paging - 1) * $this->list_max; //아마 블록 사이즈인듯
+		if($this->paging <= 1)
+		{
+			$this->startNum = 0;
+		}
+		else
+		{
+			$this->startNum = ($this->paging-1) * $this->list_max;
+		}
+
+
+		$this->total_index = 0; //안 씀
+		if (!empty($board_id))
+			$this->site_url = "/".$folder."/".$page."/".$board_id;
+		else
+			$this->site_url = "/".$folder."/".$page;
+		$this->url_option = $url_option;
+		$this->skin = $skin;//페이징 모양 여러개 만들어놓고 골라서 쓸려고 했는데 현재 안씀
+		// print_a("list_max: ".$list_max);
+		// print_a("paging max: ".$paging_max);
+		// print_a("paging: ".$paging);
+		// print_a("total_count: ".$total_count);
+		// print_a("startNum: ".$startNum);
+		// print_a("site_url: ".$site_url);
+		// print_a("url_option: ".$url_option);
+		// print_a("total_index: ".$total_index);
+		// print_a("seek: ".$seek);
+		// print_a("skin: ".$skin);
+	}
+
+	/**
+	 * 페이징
+	 */
+	 public function paging($column="paging")
+	 {
+ 		global $this_site_year, $this_site_language;
+
+ 		$totalpages = @ceil($this->total_count / $this->list_max); //총페이지수
+ 		$thisblock = @ceil($this->paging / $this->paging_max); //현재 페이징블럭
+
+ 		// 현재 페이지블럭의 시작페이지번호
+ 		if($thisblock > 1)
+ 		{
+ 			$startpage = ($thisblock - 1) * $this->paging_max + 1;
+ 		}
+ 		else
+ 		{
+ 			$startpage = 1;
+ 		}
+ 		// 현재 페이지블럭의 끝페이지번호
+ 		if(($thisblock * $this->paging_max) >= $totalpages)
+ 		{
+ 			$endpage = $totalpages;
+ 		}
+ 		else
+ 		{
+ 			$endpage = $thisblock * $this->paging_max;
+ 		}
+
+ 		//페이지번호가 0일경우는 현재표시중인 페이지를 처리한다
+ 		/*
+ 		if($pagenum == 0)
+ 		{
+ 			$pagenum = $this->paging;
+ 		}
+ 		else
+ 		{
+ 			$this->paging = $pagenum;
+ 		}
+ 		*/
+
+ 		$HTML_output = "<div id=\"pagination\" class=\"pagination\">\n";
+
+ 		// 첫 페이지
+ 		if(1 < $this->paging)
+ 		{
+ 			$HTML_output .= "\t<a href='".$this->site_url.set_parameter($this->url_option, "&".$column."=1")."' class=\"end-prev\"></a>\n";
+ 		}
+ 		else
+ 		{
+ 			$HTML_output .= "\t<a href=\"#null\" onclick=\"alert('첫번째 페이지입니다.');\" class=\"end-prev\"></a>\n";
+ 		}
+
+ 		// 현재블럭의 전페이지
+ 		$prev_page = $startpage - $this->paging_max;
+ 		if(($this->paging >= 1) && ($prev_page >= 1))
+ 		{
+ 			$HTML_output .= "\t<a href='".$this->site_url.set_parameter($this->url_option, "&".$column."=".$prev_page)."'  class=\"prev\"></a>\n";
+ 		}
+ 		else
+ 		{
+ 			$HTML_output .= "\t<a href=\"#null\" onclick=\"alert('첫 블럭입니다.');\"  class=\"prev\"></a>\n";
+ 		}
+
+ 		// 페이지 번호
+ 		for($index=$startpage; $index<=$endpage; $index++)
+ 		{
+ 			if($index != $this->paging)
+ 			{
+ 				$HTML_output .= "\t<a href='".$this->site_url.set_parameter($this->url_option, "&".$column."=".$index)."'>".$index."</a>\n";
+ 			}
+ 			else
+ 			{
+ 				$HTML_output .= "\t<a href=\"#null\" onclick=\"return false;\" class=\"active\">".$index."</a>\n";
+ 			}
+ 		}
+
+ 		//현재블럭의 다음페이지
+ 		$next_page = $startpage + $this->paging_max;
+ 		if(($this->paging != $totalpages) && ($totalpages > $next_page))
+ 		{
+ 			$HTML_output .= "\t<a href='".$this->site_url.set_parameter($this->url_option, "&".$column."=".$next_page)."' class=\"next\"></span></a>\n";
+ 		}
+ 		else
+ 		{
+ 			$HTML_output .= "\t<a href=\"#null\" onclick=\"alert('마지막 블럭입니다.');\"  class=\"next\"></a>\n";
+ 		}
+
+ 		// 마지막 페이지
+ 		if($totalpages > $this->paging)
+ 		{
+ 			$HTML_output .= "\t<a href='".$this->site_url.set_parameter($this->url_option, "&".$column."=".$totalpages)."'  class=\"end-next\"></a>\n";
+ 		}
+ 		else
+ 		{
+ 			$HTML_output .= "\t<a href=\"#null\" onclick=\"alert('마지막 페이지입니다.');\"  class=\"end-next\"></a>\n";
+ 		}
+ 		$HTML_output .= "</div>\n";
+
+ 		return $HTML_output;
+ 	}
+}
+?>
